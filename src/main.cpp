@@ -10,7 +10,8 @@ FASTLED_USING_NAMESPACE
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 
-#define FPS 100
+#define FPS 60
+#define CALC_FPS 30
 
 String params =
     "["
@@ -57,8 +58,8 @@ String params =
     "'default':'60'"
     "},"
     "{"
-    "'name':'param1',"
-    "'label':'Parameter1',"
+    "'name':'move_speed',"
+    "'label':'Move Speed',"
     "'type':" +
     String(INPUTNUMBER) +
     ","
@@ -66,12 +67,39 @@ String params =
     "'default':'1'"
     "},"
     "{"
+    "'name':'wave_freq',"
+    "'label':'Wave Frequency Scale',"
+    "'type':" +
+    String(INPUTFLOAT) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
+    "'name':'wave_duty',"
+    "'label':'Wave Duty Scale',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':-254,'max':127,"
+    "'default':'0'"
+    "},"
+    "{"
+    "'name':'param1',"
+    "'label':'Parameter1',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':0,'max':255,"
+    "'default':'60'"
+    "},"
+    "{"
     "'name':'param2',"
     "'label':'Parameter2',"
     "'type':" +
     String(INPUTNUMBER) +
     ","
-    "'min':0,'max':16384,"
+    "'min':0,'max':255,"
     "'default':'60'"
     "}"
     "]";
@@ -83,6 +111,9 @@ typedef struct params {
   uint16_t fps;
   uint8_t brightness;
   uint32_t base_color;
+  uint16_t move_speed;
+  float wave_freq;
+  int8_t wave_duty;
   uint16_t param1;
   uint16_t param2;
 } pattern_config_t;
@@ -93,6 +124,10 @@ void readParams() {
   pattern.fps = conf.getInt("fps");
   pattern.brightness = conf.getInt("brightness");
   pattern.base_color = strtol(conf.getString("color").c_str() + 1, NULL, 16);
+  pattern.move_speed = conf.getInt("move_speed");
+  pattern.wave_freq = conf.getFloat("wave_freq");
+  pattern.wave_duty = conf.getInt("wave_duty");
+
   pattern.param1 = conf.getInt("param1");
   pattern.param2 = conf.getInt("param2");
 }
@@ -154,22 +189,37 @@ void setup() {
 void loop() {
   static uint8_t delta = 0;
 
-  uint32_t start = millis();
+  uint32_t start = micros();
   FastLED.setBrightness(pattern.brightness);
 
   CRGBPalette16 p = CRGB(pattern.base_color);
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    // triwave8 creates the variations, param2 scales frequency (same scaling as how sine works)
+    // triwave8 creates the variations, wave_freq scales frequency (same scaling as how sine works)
     // delta shifts the pattern
-    leds[i] = ColorFromPalette(p, i, triwave8(pattern.param2 * (i + delta)), LINEARBLEND);
+    uint8_t base = triwave8(pattern.wave_freq * (i + delta));
+    // Shift up/down based on wave_duty. Rescale it to max 255
+    int16_t scaled = (base + pattern.wave_duty) * 255 / (255 + pattern.wave_duty);
+
+    uint8_t bri = 0;
+    if (scaled >= 0 && scaled <= 255) {
+      bri = scaled;
+    } else if (scaled > 255) {
+      bri = 255;
+    }
+
+    leds[i] = ColorFromPalette(p, i, bri, LINEARBLEND);
   }
+
   EVERY_N_SECONDS(10) {
     Serial.print("Calculation time: ");
-    Serial.print(millis() - start);
-    Serial.println("ms");
+    Serial.print(micros() - start);
+    Serial.println("us");
   }
 
   FastLED.show();
   FastLED.delay(1000 / FPS);
-  delta += pattern.param1;
+
+  EVERY_N_MILLISECONDS(1000 / CALC_FPS) {
+    delta += pattern.move_speed;
+  }
 }
