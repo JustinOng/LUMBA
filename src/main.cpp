@@ -10,7 +10,7 @@ FASTLED_USING_NAMESPACE
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 
-#define FPS 60
+#define FPS 100
 
 String params =
     "["
@@ -154,6 +154,7 @@ void setup() {
 void loop() {
   static uint8_t delta = 0;
 
+  uint32_t start = millis();
   FastLED.setBrightness(pattern.brightness);
 
   CRGBPalette16 p = CRGB(pattern.base_color);
@@ -161,6 +162,11 @@ void loop() {
     // triwave8 creates the variations, param2 scales frequency (same scaling as how sine works)
     // delta shifts the pattern
     leds[i] = ColorFromPalette(p, i, triwave8(pattern.param2 * (i + delta)), LINEARBLEND);
+  }
+  EVERY_N_SECONDS(10) {
+    Serial.print("Calculation time: ");
+    Serial.print(millis() - start);
+    Serial.println("ms");
   }
 
   FastLED.show();
