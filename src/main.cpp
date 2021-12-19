@@ -1,6 +1,16 @@
 #include <Arduino.h>
 #include <AsyncWebConfig.h>
 #include <ESPAsyncWebServer.h>
+#include <FastLED.h>
+
+FASTLED_USING_NAMESPACE
+
+#define DATA_PIN 25
+#define NUM_LEDS (144 * 5)
+#define LED_TYPE WS2812B
+#define COLOR_ORDER GRB
+
+#define FPS 60
 
 String params =
     "["
@@ -36,6 +46,33 @@ String params =
     String(INPUTCOLOR) +
     ","
     "'default':'#ffffff'"
+    "},"
+    "{"
+    "'name':'brightness',"
+    "'label':'Brightness',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':0,'max':255,"
+    "'default':'60'"
+    "},"
+    "{"
+    "'name':'param1',"
+    "'label':'Parameter1',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
+    "'name':'param2',"
+    "'label':'Parameter2',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':0,'max':16384,"
+    "'default':'60'"
     "}"
     "]";
 
@@ -44,17 +81,20 @@ AsyncWebConfig conf;
 
 typedef struct params {
   uint16_t fps;
+  uint8_t brightness;
   uint32_t base_color;
+  uint16_t param1;
+  uint16_t param2;
 } pattern_config_t;
 
 pattern_config_t pattern;
 
 void readParams() {
   pattern.fps = conf.getInt("fps");
-  pattern.base_color = strtol(conf.getString("color").c_str() + 2, NULL, 16);
-
-  Serial.println(pattern.fps);
-  Serial.println(pattern.base_color);
+  pattern.brightness = conf.getInt("brightness");
+  pattern.base_color = strtol(conf.getString("color").c_str() + 1, NULL, 16);
+  pattern.param1 = conf.getInt("param1");
+  pattern.param2 = conf.getInt("param2");
 }
 
 void handleRoot(AsyncWebServerRequest *request) {
@@ -70,6 +110,8 @@ void handleRoot(AsyncWebServerRequest *request) {
     readParams();
   }
 }
+
+CRGB leds[NUM_LEDS];
 
 void setup() {
   Serial.begin(115200);
@@ -105,8 +147,23 @@ void setup() {
   server.on("/", handleRoot);
   server.begin();
   readParams();
+
+  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  static uint8_t delta = 0;
+
+  FastLED.setBrightness(pattern.brightness);
+
+  CRGBPalette16 p = CRGB(pattern.base_color);
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    // triwave8 creates the variations, param2 scales frequency (same scaling as how sine works)
+    // delta shifts the pattern
+    leds[i] = ColorFromPalette(p, i, triwave8(pattern.param2 * (i + delta)), LINEARBLEND);
+  }
+
+  FastLED.show();
+  FastLED.delay(1000 / FPS);
+  delta += pattern.param1;
 }
