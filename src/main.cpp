@@ -186,6 +186,7 @@ typedef struct params {
 pattern_config_t pattern;
 
 CRGB leds[NUM_LEDS];
+CRGB overlay_leds[NUM_LEDS];
 CRGBPalette16 vary_palette;
 
 RandomChange change_palette(pattern.param1);
@@ -328,10 +329,20 @@ void drawSegment(uint16_t start, uint16_t end, uint8_t delta, bool invert) {
 
 void loop() {
   static uint8_t delta = 0;
+  static uint8_t line_length = 0;
 
   VL53L0X_RangingMeasurementData_t measurement;
   if (lox1.getSingleRangingMeasurement(&measurement, false) == VL53L0X_ERROR_NONE) {
     Serial.println(measurement.RangeMilliMeter);
+    static bool pWithinRange;
+
+    bool withinRange = measurement.RangeMilliMeter < 200;
+
+    if (withinRange && !pWithinRange) {
+      line_length = pattern.param3;
+    }
+
+    pWithinRange = withinRange;
   } else {
     Serial.println("Failed to range");
   }
@@ -344,6 +355,29 @@ void loop() {
     drawSegment(NUM_MIDDLE, 720, delta, true);
     drawSegment(720, 720 + 35, delta, false);
     drawSegment(720 + 35, 720 + 70, delta, true);
+
+    for (uint8_t u = 0; u < pattern.param2; u++) {
+      for (uint16_t i = NUM_LEDS - 1; i >= 1; i--) {
+        overlay_leds[i] = overlay_leds[i - 1];
+      }
+      overlay_leds[0] = overlay_leds[1];
+
+      CRGB base_color = CRGB::Black;
+      CRGB whiter = base_color + CRGB(255, 255, 255);
+      if (line_length > 0) {
+        nblend(overlay_leds[0], whiter, pattern.param1);
+      } else {
+        nblend(overlay_leds[0], base_color, pattern.param1);
+      }
+
+      if (line_length > 0) {
+        line_length--;
+      }
+
+      for (uint16_t i = 0; i < NUM_LEDS; i++) {
+        leds[i] += overlay_leds[i];
+      }
+    }
   } else if (pattern.num == '1') {
     static bool color = false;
     static uint8_t last_change = 0;
