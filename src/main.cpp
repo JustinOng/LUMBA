@@ -374,6 +374,9 @@ void loop() {
       for (uint16_t i = 0; i < NUM_LEDS; i++) {
         if (random8(pattern.param1) == 0) {
           overlay_leds[i] = star_color;
+          if (i + 1 < (NUM_LEDS - 1)) {
+            overlay_leds[i + 1] = star_color;
+          }
         }
       }
     }
