@@ -348,20 +348,20 @@ void loop() {
     static bool color = false;
     static uint8_t last_change = 0;
 
-    for (uint16_t i = 1; i < NUM_LEDS; i++) {
+    for (uint16_t i = NUM_LEDS - 1; i >= 1; i--) {
       leds[i] = leds[i - 1];
     }
     leds[0] = leds[1];
 
-    CRGB base_color = CRGB(pattern.base_color);
-    CRGB whiter = base_color - CRGB(50, 50, 50);
+    CRGB base_color = CRGB::Black;
+    CRGB whiter = base_color + CRGB(255, 255, 255);
     if (color) {
       nblend(leds[0], base_color, pattern.param1);
     } else {
       nblend(leds[0], whiter, pattern.param1);
     }
 
-    if (last_change == 0 && random8(pattern.param2) == 0) {
+    if (last_change == 0) {
       color = !color;
       last_change = pattern.param3;
     } else if (last_change > 0) {
