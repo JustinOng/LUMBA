@@ -329,9 +329,25 @@ void drawSegment(uint16_t start, uint16_t end, uint8_t delta, bool invert) {
 void loop() {
   static uint8_t delta = 0;
 
+  static char pNum = 255;
+  static char num = '0';
+
   VL53L0X_RangingMeasurementData_t measurement;
   if (lox1.getSingleRangingMeasurement(&measurement, false) == VL53L0X_ERROR_NONE) {
     Serial.println(measurement.RangeMilliMeter);
+    static bool pWithinRange;
+
+    bool withinRange = measurement.RangeMilliMeter < 200;
+
+    if (withinRange && !pWithinRange) {
+      if (num == '0') {
+        num = '1';
+      } else {
+        num = '0';
+      }
+    }
+
+    pWithinRange = withinRange;
   } else {
     Serial.println("Failed to range");
   }
@@ -339,37 +355,47 @@ void loop() {
   uint32_t start = micros();
   FastLED.setBrightness(pattern.brightness);
 
-  if (pattern.num == '0') {
+  if (num == '0') {
     drawSegment(0, NUM_MIDDLE, delta, false);
     drawSegment(NUM_MIDDLE, 720, delta, true);
     drawSegment(720, 720 + 35, delta, false);
     drawSegment(720 + 35, 720 + 70, delta, true);
-  } else if (pattern.num == '1') {
+  } else if (num == '1') {
     static bool color = false;
     static uint8_t last_change = 0;
 
-    for (uint16_t i = NUM_LEDS - 1; i >= 1; i--) {
-      leds[i] = leds[i - 1];
-    }
-    leds[0] = leds[1];
+    uint16_t iterations = 2;
 
-    CRGB base_color = CRGB::Black;
-    CRGB whiter = base_color + CRGB(255, 255, 255);
-    if (color) {
-      nblend(leds[0], base_color, pattern.param1);
-    } else {
-      nblend(leds[0], whiter, pattern.param1);
+    if (pNum != num) {
+      iterations = NUM_LEDS;
     }
 
-    if (last_change == 0) {
-      color = !color;
-      last_change = pattern.param3;
-    } else if (last_change > 0) {
-      last_change--;
+    for (uint16_t u = 0; u < iterations; u++) {
+      for (uint16_t i = NUM_LEDS - 1; i >= 1; i--) {
+        leds[i] = leds[i - 1];
+      }
+      leds[0] = leds[1];
+
+      CRGB base_color = CRGB::Black;
+      CRGB whiter = base_color + CRGB(255, 255, 255);
+      if (color) {
+        nblend(leds[0], base_color, pattern.param1);
+      } else {
+        nblend(leds[0], whiter, pattern.param1);
+      }
+
+      if (last_change == 0) {
+        color = !color;
+        last_change = pattern.param3;
+      } else if (last_change > 0) {
+        last_change--;
+      }
     }
 
     // fill_palette(leds, NUM_LEDS, delta, 2, p, 255, LINEARBLEND);
   }
+
+  pNum = num;
 
   EVERY_N_SECONDS(10) {
     Serial.print("Calculation time: ");
