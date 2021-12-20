@@ -341,7 +341,7 @@ void loop() {
   static uint8_t delta = 0;
   static uint8_t line_length = 0;
 
-  static uint32_t sensor_activated = -1;
+  static uint16_t star_index = -1;
 
   VL53L0X_RangingMeasurementData_t measurement;
   if (lox1.getSingleRangingMeasurement(&measurement, false) == VL53L0X_ERROR_NONE) {
@@ -351,7 +351,7 @@ void loop() {
     bool withinRange = measurement.RangeMilliMeter < 1000;
 
     if (withinRange && !pWithinRange) {
-      sensor_activated = millis();
+      star_index = 0;
     }
 
     pWithinRange = withinRange;
@@ -369,15 +369,17 @@ void loop() {
     drawSegment(720 + 35, 720 + 70, delta, true);
 
     CRGB star_color = CRGB(pattern.sec_color);
+    static uint32_t last_change = 0;
 
-    if (millis() - sensor_activated < pattern.param2) {
-      for (uint16_t i = 0; i < NUM_LEDS; i++) {
-        if (random8(pattern.param1) == 0) {
-          overlay_leds[i] = star_color;
-          if (i + 1 < (NUM_LEDS - 1)) {
-            overlay_leds[i + 1] = star_color;
+    if (millis() - last_change > pattern.param2) {
+      last_change = millis();
+      if (star_index < NUM_LEDS) {
+        for (uint16_t i = star_index; i < (star_index + pattern.param3); i++) {
+          if (i < (NUM_LEDS - 1)) {
+            overlay_leds[i] = star_color;
           }
         }
+        star_index += pattern.param1;
       }
     }
 
