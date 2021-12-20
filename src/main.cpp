@@ -18,7 +18,7 @@ FASTLED_USING_NAMESPACE
 
 #define DATA_PIN 25
 #define LED_TYPE WS2812B
-#define COLOR_ORDER GRB
+#define COLOR_ORDER RGB
 
 #define FPS 60
 #define CALC_FPS 30
@@ -57,6 +57,14 @@ String params =
     String(INPUTCOLOR) +
     ","
     "'default':'#ffffff'"
+    "},"
+    "{"
+    "'name':'sec_color',"
+    "'label':'Secondary Color',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#00ff00'"
     "},"
     "{"
     "'name':'brightness',"
@@ -111,7 +119,7 @@ String params =
     "'type':" +
     String(INPUTNUMBER) +
     ","
-    "'min':0,'max':255,"
+    "'min':0,'max':65535,"
     "'default':'60'"
     "},"
     "{"
@@ -120,7 +128,7 @@ String params =
     "'type':" +
     String(INPUTNUMBER) +
     ","
-    "'min':0,'max':255,"
+    "'min':0,'max':65535,"
     "'default':'60'"
     "},"
     "{"
@@ -175,6 +183,7 @@ typedef struct params {
   uint16_t fps;
   uint8_t brightness;
   uint32_t base_color;
+  uint32_t sec_color;
   uint16_t move_speed;
   float wave_freq;
   int8_t wave_duty;
@@ -199,6 +208,7 @@ void readParams() {
   pattern.fps = conf.getInt("fps");
   pattern.brightness = conf.getInt("brightness");
   pattern.base_color = strtol(conf.getString("color").c_str() + 1, NULL, 16);
+  pattern.sec_color = strtol(conf.getString("sec_color").c_str() + 1, NULL, 16);
   pattern.move_speed = conf.getInt("move_speed");
   pattern.wave_freq = conf.getFloat("wave_freq");
   pattern.wave_duty = conf.getInt("wave_duty");
@@ -284,7 +294,7 @@ void setup() {
   digitalWrite(SHT_LOX2, HIGH);
   delay(10);
 
-  if (!lox2.begin(LOX1_ADDRESS)) {
+  if (!lox2.begin(LOX2_ADDRESS)) {
     Serial.println("Could not detect VL53L0X unit 2");
     while (1)
       ;
@@ -331,15 +341,17 @@ void loop() {
   static uint8_t delta = 0;
   static uint8_t line_length = 0;
 
+  static uint32_t sensor_activated = -1;
+
   VL53L0X_RangingMeasurementData_t measurement;
   if (lox1.getSingleRangingMeasurement(&measurement, false) == VL53L0X_ERROR_NONE) {
     Serial.println(measurement.RangeMilliMeter);
     static bool pWithinRange;
 
-    bool withinRange = measurement.RangeMilliMeter < 200;
+    bool withinRange = measurement.RangeMilliMeter < 1000;
 
     if (withinRange && !pWithinRange) {
-      line_length = pattern.param3;
+      sensor_activated = millis();
     }
 
     pWithinRange = withinRange;
@@ -356,27 +368,20 @@ void loop() {
     drawSegment(720, 720 + 35, delta, false);
     drawSegment(720 + 35, 720 + 70, delta, true);
 
-    for (uint8_t u = 0; u < pattern.param2; u++) {
-      for (uint16_t i = NUM_LEDS - 1; i >= 1; i--) {
-        overlay_leds[i] = overlay_leds[i - 1];
-      }
-      overlay_leds[0] = overlay_leds[1];
+    CRGB star_color = CRGB(pattern.sec_color);
 
-      CRGB base_color = CRGB::Black;
-      CRGB whiter = base_color + CRGB(255, 255, 255);
-      if (line_length > 0) {
-        nblend(overlay_leds[0], whiter, pattern.param1);
-      } else {
-        nblend(overlay_leds[0], base_color, pattern.param1);
-      }
-
-      if (line_length > 0) {
-        line_length--;
-      }
-
+    if (millis() - sensor_activated < pattern.param2) {
       for (uint16_t i = 0; i < NUM_LEDS; i++) {
-        leds[i] += overlay_leds[i];
+        if (random8(pattern.param1) == 0) {
+          overlay_leds[i] = star_color;
+        }
       }
+    }
+
+    fadeToBlackBy(overlay_leds, NUM_LEDS, 32);
+
+    for (uint16_t i = 0; i < NUM_LEDS; i++) {
+      leds[i] += overlay_leds[i];
     }
   } else if (pattern.num == '1') {
     static bool color = false;
