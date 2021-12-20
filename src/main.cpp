@@ -12,8 +12,11 @@ FASTLED_USING_NAMESPACE
 // set the pins to shutdown
 #define SHT_LOX1 18
 #define SHT_LOX2 19
+
+#define NUM_LEDS (720 + 70)
+#define NUM_MIDDLE (360 + 12)
+
 #define DATA_PIN 25
-#define NUM_LEDS 400
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 
@@ -290,6 +293,39 @@ void setup() {
   lox2.startRangeContinuous();
 }
 
+void drawSegment(uint16_t start, uint16_t end, uint8_t delta, bool invert) {
+  CRGBPalette16 p = CRGB(pattern.base_color);
+  uint16_t i = start;
+  while (i != end) {
+    // triwave8 creates the variations, wave_freq scales frequency (same scaling as how sine works)
+    // delta shifts the pattern
+    // minus start so that the patterns on different segments start at consistent points
+    uint8_t pos = i + delta - start;
+
+    if (invert) {
+      pos = i - delta - start;
+    }
+    uint8_t base = triwave8(pattern.wave_freq * pos);
+    // Shift up/down based on wave_duty. Rescale it to max 255
+    int16_t scaled = (base + pattern.wave_duty) * 255 / (255 + pattern.wave_duty);
+
+    uint8_t bri = 0;
+    if (scaled >= 0 && scaled <= 255) {
+      bri = scaled;
+    } else if (scaled > 255) {
+      bri = 255;
+    }
+
+    leds[i] = ColorFromPalette(p, i, bri, LINEARBLEND);
+
+    if (start < end) {
+      i++;
+    } else {
+      i--;
+    }
+  }
+}
+
 void loop() {
   static uint8_t delta = 0;
 
@@ -304,23 +340,10 @@ void loop() {
   FastLED.setBrightness(pattern.brightness);
 
   if (pattern.num == '0') {
-    CRGBPalette16 p = CRGB(pattern.base_color);
-    for (uint16_t i = 0; i < NUM_LEDS; i++) {
-      // triwave8 creates the variations, wave_freq scales frequency (same scaling as how sine works)
-      // delta shifts the pattern
-      uint8_t base = triwave8(pattern.wave_freq * (i + delta));
-      // Shift up/down based on wave_duty. Rescale it to max 255
-      int16_t scaled = (base + pattern.wave_duty) * 255 / (255 + pattern.wave_duty);
-
-      uint8_t bri = 0;
-      if (scaled >= 0 && scaled <= 255) {
-        bri = scaled;
-      } else if (scaled > 255) {
-        bri = 255;
-      }
-
-      leds[i] = ColorFromPalette(p, i, bri, LINEARBLEND);
-    }
+    drawSegment(0, NUM_MIDDLE, delta, false);
+    drawSegment(NUM_MIDDLE, 720, delta, true);
+    drawSegment(720, 720 + 35, delta, false);
+    drawSegment(720 + 35, 720 + 70, delta, true);
   } else if (pattern.num == '1') {
     static bool color = false;
     static uint8_t last_change = 0;
@@ -365,7 +388,7 @@ void loop() {
     } else if (delta_sin < 220) {
       delta += 2;
     } else {
-      delta += 3;
+      delta += 4;
     }
 
     delta_sin += pattern.move_speed;
