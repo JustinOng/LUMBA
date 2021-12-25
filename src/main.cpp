@@ -232,11 +232,13 @@ void handleRoot(AsyncWebServerRequest* request) {
 
 hw_timer_t* timer = NULL;
 
-struct {
+typedef struct {
   uint8_t delta;
   uint8_t line_length;
   uint16_t star_index;
-} runtime_data;
+} runtime_data_t;
+
+runtime_data_t runtime_data;
 
 SemaphoreHandle_t param_access;
 
@@ -322,15 +324,19 @@ void drawSegment(uint16_t start, uint16_t end, uint8_t delta, bool invert) {
 }
 
 void loop() {
+  runtime_data_t data;
   xSemaphoreTake(param_access, portMAX_DELAY);
+  memcpy(&data, &runtime_data, sizeof(runtime_data_t));
+  xSemaphoreGive(param_access);
+
   uint32_t start = micros();
   FastLED.setBrightness(pattern.brightness);
 
   if (pattern.num == '0') {
-    drawSegment(0, NUM_MIDDLE, runtime_data.delta, false);
-    drawSegment(NUM_MIDDLE, 720, runtime_data.delta, true);
-    drawSegment(720, 720 + 35, runtime_data.delta, false);
-    drawSegment(720 + 35, 720 + 70, runtime_data.delta, true);
+    drawSegment(0, NUM_MIDDLE, data.delta, false);
+    drawSegment(NUM_MIDDLE, 720, data.delta, true);
+    drawSegment(720, 720 + 35, data.delta, false);
+    drawSegment(720 + 35, 720 + 70, data.delta, true);
 
     // CRGB star_color = CRGB(pattern.sec_color);
     // static uint32_t last_change = 0;
@@ -378,7 +384,6 @@ void loop() {
 
     // fill_palette(leds, NUM_LEDS, delta, 2, p, 255, LINEARBLEND);
   }
-  xSemaphoreGive(param_access);
 
   EVERY_N_SECONDS(10) {
     Serial.print("Calculation time: ");
@@ -391,8 +396,7 @@ void loop() {
 }
 
 void calcHandler() {
-  xSemaphoreTake(param_access, portMAX_DELAY);
+  xSemaphoreTakeFromISR(param_access, NULL);
   runtime_data.delta += 1;
-
   xSemaphoreGive(param_access);
 }
