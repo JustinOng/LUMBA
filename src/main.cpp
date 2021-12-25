@@ -149,39 +149,6 @@ String params =
     "}"
     "]";
 
-class RandomChange {
- public:
-  RandomChange(uint8_t _delta) : RandomChange(_delta, 0, 255) {}
-  RandomChange(uint8_t _delta, uint8_t _min, uint8_t _max) {
-    delta = _delta;
-    min = _min;
-    max = _max;
-  }
-
-  uint8_t get() {
-    if (forward) {
-      c += random8(delta);
-      if (c > max) {
-        c = max;
-        forward = false;
-      }
-    } else {
-      c -= random8(delta);
-      if (c < min) {
-        c = min;
-        forward = true;
-      }
-    }
-
-    return c;
-  }
-
- private:
-  uint8_t delta, min, max;
-  int16_t c = 0;
-  bool forward = true;
-};
-
 AsyncWebServer server(80);
 AsyncWebConfig conf;
 
@@ -205,9 +172,6 @@ CRGB leds[NUM_LEDS];
 CRGB overlay_leds[NUM_LEDS];
 CRGBPalette16 vary_palette;
 
-RandomChange change_palette(pattern.param1);
-RandomChange change_brightness(pattern.param2, 50, 255);
-
 void calcHandler();
 
 void readParams() {
@@ -224,9 +188,6 @@ void readParams() {
   pattern.param1 = conf.getInt("param1");
   pattern.param2 = conf.getInt("param2");
   pattern.param3 = conf.getInt("param3");
-
-  change_palette = RandomChange(pattern.param1);
-  change_brightness = RandomChange(pattern.param2, 100, 255);
 }
 
 void handleRoot(AsyncWebServerRequest* request) {
