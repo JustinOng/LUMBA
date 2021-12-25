@@ -1,12 +1,14 @@
 #include "sensors.h"
 
+#include "VL53L0X.h"
+
 struct {
   uint16_t threshold;
   uint16_t activate_debounce;
 } config;
 
 bool sensor_init_ok[NUM_LOX] = {false};
-Adafruit_VL53L0X lox[NUM_LOX];
+VL53L0X lox[NUM_LOX];
 
 void initSensors() {
   Wire.begin(PIN_SDA, PIN_SCL);
@@ -25,11 +27,12 @@ void initSensors() {
     digitalWrite(LOX_SHT[i], HIGH);
     delay(10);
 
-    if (!lox[i].begin(LOX_ADDRESS[i])) {
+    if (!lox[i].init()) {
       Serial.print("Could not detect VL53L0X unit ");
       Serial.println(i);
     } else {
-      lox[i].startRangeContinuous();
+      lox[i].setAddress(LOX_ADDRESS[i]);
+      lox[i].startContinuous();
       sensor_init_ok[i] = true;
     }
   }
@@ -44,20 +47,17 @@ bool sensorActivated(uint8_t i) {
 
   bool activated = false;
 
-  VL53L0X_RangingMeasurementData_t measurement;
-  if (lox[i].getSingleRangingMeasurement(&measurement, false) == VL53L0X_ERROR_NONE) {
-    bool withinRange = measurement.RangeMilliMeter < config.threshold;
+  bool withinRange = lox[i].readRangeContinuousMillimeters() < config.threshold;
 
-    if (withinRange && !pWithinRange[i]) {
-      if ((millis() - last_activate[i]) > config.activate_debounce) {
-        last_activate[i] = millis();
+  if (withinRange && !pWithinRange[i]) {
+    if ((millis() - last_activate[i]) > config.activate_debounce) {
+      last_activate[i] = millis();
 
-        activated = true;
-      }
+      activated = true;
     }
-
-    pWithinRange[i] = withinRange;
   }
+
+  pWithinRange[i] = withinRange;
 
   return activated;
 }

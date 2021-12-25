@@ -370,9 +370,13 @@ void loop() {
   memcpy(&data, &runtime_data, sizeof(runtime_data_t));
   xSemaphoreGive(param_access);
 
-  if (sensorActivated(0)) {
-    star_index = 0;
-    Serial.println("Triggered");
+  static uint32_t last_sensor_read = 0;
+  if (millis() - last_sensor_read > 100) {
+    last_sensor_read = millis();
+    if (sensorActivated(0)) {
+      star_index = 0;
+      Serial.println("Triggered");
+    }
   }
 
   uint32_t start = micros();
