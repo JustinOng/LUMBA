@@ -110,14 +110,63 @@ String params =
     "'default':'0'"
     "},"
     "{"
+    "'name':'fw_color_0',"
+    "'label':'Fireworks Color 0',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#cbb1d6'"
+    "},"
+    "{"
+    "'name':'fw_color_1',"
+    "'label':'Fireworks Color 1',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#fecf03'"
+    "},"
+    "{"
+    "'name':'fw_color_2',"
+    "'label':'Fireworks Color 2',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#faa564'"
+    "},"
+    "{"
+    "'name':'fw_color_3',"
+    "'label':'Fireworks Color 3',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#fef7ef'"
+    "},"
+    "{"
+    "'name':'fw_color_4',"
+    "'label':'Fireworks Color 4',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#fee9f0'"
+    "},"
+    "{"
+    "'name':'fw_increment',"
+    "'label':'Fireworks Width Scaling',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
     "'name':'pattern_num',"
     "'label':'Pattern',"
     "'type':" +
     String(INPUTRADIO) +
     ","
     "'options':["
-    "{'v':'0','l':'Sine Wave'},"
-    "{'v':'1','l':'Random'}],"
+    "{'v':'0','l':'Wave'},"
+    "{'v':'1','l':'Fireworks'}],"
     "'default':'0'"
     "},"
     "{"
@@ -161,6 +210,8 @@ typedef struct params {
   uint16_t move_speed;
   float wave_freq;
   int8_t wave_duty;
+  uint32_t fw_colors[5];
+  uint8_t fw_increment;
   uint16_t param1;
   uint16_t param2;
   uint16_t param3;
@@ -170,7 +221,6 @@ pattern_config_t pattern;
 
 CRGB leds[NUM_LEDS];
 CRGB overlay_leds[NUM_LEDS];
-CRGBPalette16 vary_palette;
 
 void calcHandler();
 
@@ -179,6 +229,15 @@ void readParams() {
   pattern.brightness = conf.getInt("brightness");
   pattern.base_color = strtol(conf.getString("color").c_str() + 1, NULL, 16);
   pattern.sec_color = strtol(conf.getString("sec_color").c_str() + 1, NULL, 16);
+
+  pattern.fw_colors[0] = strtol(conf.getString("fw_color_0").c_str() + 1, NULL, 16);
+  pattern.fw_colors[1] = strtol(conf.getString("fw_color_1").c_str() + 1, NULL, 16);
+  pattern.fw_colors[2] = strtol(conf.getString("fw_color_2").c_str() + 1, NULL, 16);
+  pattern.fw_colors[3] = strtol(conf.getString("fw_color_3").c_str() + 1, NULL, 16);
+  pattern.fw_colors[4] = strtol(conf.getString("fw_color_4").c_str() + 1, NULL, 16);
+
+  pattern.fw_increment = conf.getInt("fw_increment");
+
   pattern.move_speed = conf.getInt("move_speed");
   pattern.wave_freq = conf.getFloat("wave_freq");
   pattern.wave_duty = conf.getInt("wave_duty");
@@ -334,30 +393,37 @@ void loop() {
       leds[i] += overlay_leds[i];
     }
   } else if (pattern.num == '1') {
-    static bool color = false;
-    static uint8_t last_change = 0;
+    CRGBPalette16 fw_palette;
 
-    for (uint16_t i = NUM_LEDS - 1; i >= 1; i--) {
-      leds[i] = leds[i - 1];
+#define MAP_PALETTE(start, end, color_index)        \
+  for (uint8_t i = start; i < end; i++) {           \
+    fw_palette[i] = pattern.fw_colors[color_index]; \
+  }
+    MAP_PALETTE(0, 2, 0)
+    MAP_PALETTE(3, 5, 1)
+    MAP_PALETTE(6, 8, 2)
+    MAP_PALETTE(8, 11, 3)
+    MAP_PALETTE(12, 15, 4)
+
+    for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
+      uint8_t pos = data.delta;
+      uint16_t u = segments[i].start;
+      while (u != segments[i].end) {
+        if (!segments[i].invert) {
+          pos += pattern.fw_increment;
+        } else {
+          pos -= pattern.fw_increment;
+        }
+
+        leds[u] = ColorFromPalette(fw_palette, pos, 255, LINEARBLEND);
+
+        if (segments[i].start < segments[i].end) {
+          u++;
+        } else {
+          u--;
+        }
+      }
     }
-    leds[0] = leds[1];
-
-    CRGB base_color = CRGB::Black;
-    CRGB whiter = base_color + CRGB(255, 255, 255);
-    if (color) {
-      nblend(leds[0], base_color, pattern.param1);
-    } else {
-      nblend(leds[0], whiter, pattern.param1);
-    }
-
-    if (last_change == 0) {
-      color = !color;
-      last_change = pattern.param3;
-    } else if (last_change > 0) {
-      last_change--;
-    }
-
-    // fill_palette(leds, NUM_LEDS, delta, 2, p, 255, LINEARBLEND);
   }
 
   EVERY_N_SECONDS(10) {
