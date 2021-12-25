@@ -404,7 +404,16 @@ boolean AsyncWebConfig::readConfig(const char * filename){
   if (f) {
     Serial.println(F("Read configuration"));
     uint32_t size = f.size();
+    uint32_t pSize = -1;
     while (f.position() < size) {
+      if (f.position() == pSize) {
+        Serial.println(F("File position did not increment, possible corrupted FS? Resetting to default settings"));
+        f.close();
+        writeConfig(filename);
+        return false;
+      }
+      pSize = f.position();
+
       line = f.readStringUntil(10);
       pos = line.indexOf('=');
       name = line.substring(0,pos);
