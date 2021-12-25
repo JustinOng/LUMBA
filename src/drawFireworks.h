@@ -5,8 +5,8 @@
 
 void drawFireworks(CRGB *leds, CRGBPalette16 &fw_palette, uint16_t start, uint16_t end, uint8_t delta, bool invert) {
   uint8_t pos = delta;
-  uint16_t i = start;
-  while (i != end) {
+  int16_t i = start;
+  while ((start < end && i <= end) || (start > end && i >= end)) {
     if (!invert) {
       pos += pattern.fw_increment;
     } else {

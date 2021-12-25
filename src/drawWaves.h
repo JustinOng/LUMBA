@@ -6,8 +6,8 @@
 void drawWaves(CRGB *leds, uint16_t start, uint16_t end, uint8_t delta, bool invert) {
   CRGBPalette16 p = CRGB(pattern.wave_color);
   uint8_t pos = delta;
-  uint16_t i = start;
-  while (i != end) {
+  int16_t i = start;
+  while ((start < end && i <= end) || (start > end && i >= end)) {
     // triwave8 creates the variations, wave_freq scales frequency (same scaling as how sine works)
     // delta shifts the pattern
 
