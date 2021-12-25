@@ -3,6 +3,9 @@
 #include <ESPAsyncWebServer.h>
 #include <FastLED.h>
 
+#include "drawFireworks.h"
+#include "drawWaves.h"
+#include "patternConfig.h"
 #include "sensors.h"
 
 FASTLED_USING_NAMESPACE
@@ -25,7 +28,7 @@ segment_t segments[] = {
 
 #define DATA_PIN 25
 #define LED_TYPE WS2812B
-#define COLOR_ORDER RGB
+#define COLOR_ORDER GRB
 
 #define FPS 60
 #define CALC_FPS 60
@@ -58,8 +61,8 @@ String params =
     "'default':'60'"
     "},"
     "{"
-    "'name':'color',"
-    "'label':'Base Color',"
+    "'name':'wave_color',"
+    "'label':'Wave Color',"
     "'type':" +
     String(INPUTCOLOR) +
     ","
@@ -201,22 +204,6 @@ String params =
 AsyncWebServer server(80);
 AsyncWebConfig conf;
 
-typedef struct params {
-  char num;
-  uint16_t fps;
-  uint8_t brightness;
-  uint32_t base_color;
-  uint32_t sec_color;
-  uint16_t move_speed;
-  float wave_freq;
-  int8_t wave_duty;
-  uint32_t fw_colors[5];
-  uint8_t fw_increment;
-  uint16_t param1;
-  uint16_t param2;
-  uint16_t param3;
-} pattern_config_t;
-
 pattern_config_t pattern;
 
 CRGB leds[NUM_LEDS];
@@ -227,8 +214,9 @@ void calcHandler();
 void readParams() {
   pattern.fps = conf.getInt("fps");
   pattern.brightness = conf.getInt("brightness");
-  pattern.base_color = strtol(conf.getString("color").c_str() + 1, NULL, 16);
   pattern.sec_color = strtol(conf.getString("sec_color").c_str() + 1, NULL, 16);
+
+  pattern.wave_color = strtol(conf.getString("wave_color").c_str() + 1, NULL, 16);
 
   pattern.fw_colors[0] = strtol(conf.getString("fw_color_0").c_str() + 1, NULL, 16);
   pattern.fw_colors[1] = strtol(conf.getString("fw_color_1").c_str() + 1, NULL, 16);
@@ -323,41 +311,6 @@ void setup() {
   timerAlarmEnable(timer);
 }
 
-void drawSegment(uint16_t start, uint16_t end, uint8_t delta, bool invert) {
-  CRGBPalette16 p = CRGB(pattern.base_color);
-  uint8_t pos = delta;
-  uint16_t i = start;
-  while (i != end) {
-    // triwave8 creates the variations, wave_freq scales frequency (same scaling as how sine works)
-    // delta shifts the pattern
-
-    if (!invert) {
-      pos++;
-    } else {
-      pos--;
-    }
-
-    uint8_t base = triwave8(pattern.wave_freq * pos);
-    // Shift up/down based on wave_duty. Rescale it to max 255
-    int16_t scaled = (base + pattern.wave_duty) * 255 / (255 + pattern.wave_duty);
-
-    uint8_t bri = 0;
-    if (scaled >= 0 && scaled <= 255) {
-      bri = scaled;
-    } else if (scaled > 255) {
-      bri = 255;
-    }
-
-    leds[i] = ColorFromPalette(p, i, bri, LINEARBLEND);
-
-    if (start < end) {
-      i++;
-    } else {
-      i--;
-    }
-  }
-}
-
 void loop() {
   runtime_data_t data;
   xSemaphoreTake(param_access, portMAX_DELAY);
@@ -369,7 +322,7 @@ void loop() {
 
   if (pattern.num == '0') {
     for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-      drawSegment(segments[i].start, segments[i].end, data.delta, segments[i].invert);
+      drawWaves(leds, segments[i].start, segments[i].end, data.delta, segments[i].invert);
     }
 
     // CRGB star_color = CRGB(pattern.sec_color);
@@ -406,23 +359,7 @@ void loop() {
     MAP_PALETTE(12, 15, 4)
 
     for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-      uint8_t pos = data.delta;
-      uint16_t u = segments[i].start;
-      while (u != segments[i].end) {
-        if (!segments[i].invert) {
-          pos += pattern.fw_increment;
-        } else {
-          pos -= pattern.fw_increment;
-        }
-
-        leds[u] = ColorFromPalette(fw_palette, pos, 255, LINEARBLEND);
-
-        if (segments[i].start < segments[i].end) {
-          u++;
-        } else {
-          u--;
-        }
-      }
+      drawFireworks(leds, fw_palette, segments[i].start, segments[i].end, data.delta, segments[i].invert);
     }
   }
 
