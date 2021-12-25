@@ -8,7 +8,20 @@
 FASTLED_USING_NAMESPACE
 
 #define NUM_LEDS (720 + 70)
-#define NUM_MIDDLE (360 + 12)
+
+typedef struct {
+  uint16_t start;
+  uint16_t end;
+  bool invert;
+} segment_t;
+
+segment_t segments[] = {
+    {.start = 44,
+     .end = 0,
+     .invert = true},
+    {.start = 45,
+     .end = 90,
+     .invert = true}};
 
 #define DATA_PIN 25
 #define LED_TYPE WS2812B
@@ -292,16 +305,18 @@ void setup() {
 
 void drawSegment(uint16_t start, uint16_t end, uint8_t delta, bool invert) {
   CRGBPalette16 p = CRGB(pattern.base_color);
+  uint8_t pos = delta;
   uint16_t i = start;
   while (i != end) {
     // triwave8 creates the variations, wave_freq scales frequency (same scaling as how sine works)
     // delta shifts the pattern
-    // minus start so that the patterns on different segments start at consistent points
-    uint8_t pos = i + delta - start;
 
-    if (invert) {
-      pos = i - delta - start;
+    if (!invert) {
+      pos++;
+    } else {
+      pos--;
     }
+
     uint8_t base = triwave8(pattern.wave_freq * pos);
     // Shift up/down based on wave_duty. Rescale it to max 255
     int16_t scaled = (base + pattern.wave_duty) * 255 / (255 + pattern.wave_duty);
@@ -333,10 +348,9 @@ void loop() {
   FastLED.setBrightness(pattern.brightness);
 
   if (pattern.num == '0') {
-    drawSegment(0, NUM_MIDDLE, data.delta, false);
-    drawSegment(NUM_MIDDLE, 720, data.delta, true);
-    drawSegment(720, 720 + 35, data.delta, false);
-    drawSegment(720 + 35, 720 + 70, data.delta, true);
+    for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
+      drawSegment(segments[i].start, segments[i].end, data.delta, segments[i].invert);
+    }
 
     // CRGB star_color = CRGB(pattern.sec_color);
     // static uint32_t last_change = 0;
