@@ -15,7 +15,7 @@ FASTLED_USING_NAMESPACE
 #define COLOR_ORDER RGB
 
 #define FPS 60
-#define CALC_FPS 30
+#define CALC_FPS 60
 
 String params =
     "["
@@ -195,6 +195,8 @@ CRGBPalette16 vary_palette;
 RandomChange change_palette(pattern.param1);
 RandomChange change_brightness(pattern.param2, 50, 255);
 
+void calcHandler();
+
 void readParams() {
   pattern.fps = conf.getInt("fps");
   pattern.brightness = conf.getInt("brightness");
@@ -227,6 +229,16 @@ void handleRoot(AsyncWebServerRequest* request) {
     readParams();
   }
 }
+
+hw_timer_t* timer = NULL;
+
+struct {
+  uint8_t delta;
+  uint8_t line_length;
+  uint16_t star_index;
+} runtime_data;
+
+SemaphoreHandle_t param_access;
 
 void setup() {
   Serial.begin(115200);
@@ -266,6 +278,14 @@ void setup() {
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
   initSensors();
+
+  param_access = xSemaphoreCreateMutex();
+  assert(param_access != nullptr);
+
+  timer = timerBegin(0, 80, true);
+  timerAttachInterrupt(timer, &calcHandler, true);
+  timerAlarmWrite(timer, 1000000 / CALC_FPS, true);
+  timerAlarmEnable(timer);
 }
 
 void drawSegment(uint16_t start, uint16_t end, uint8_t delta, bool invert) {
@@ -302,34 +322,30 @@ void drawSegment(uint16_t start, uint16_t end, uint8_t delta, bool invert) {
 }
 
 void loop() {
-  static uint8_t delta = 0;
-  static uint8_t line_length = 0;
-
-  static uint16_t star_index = -1;
-
+  xSemaphoreTake(param_access, portMAX_DELAY);
   uint32_t start = micros();
   FastLED.setBrightness(pattern.brightness);
 
   if (pattern.num == '0') {
-    drawSegment(0, NUM_MIDDLE, delta, false);
-    drawSegment(NUM_MIDDLE, 720, delta, true);
-    drawSegment(720, 720 + 35, delta, false);
-    drawSegment(720 + 35, 720 + 70, delta, true);
+    drawSegment(0, NUM_MIDDLE, runtime_data.delta, false);
+    drawSegment(NUM_MIDDLE, 720, runtime_data.delta, true);
+    drawSegment(720, 720 + 35, runtime_data.delta, false);
+    drawSegment(720 + 35, 720 + 70, runtime_data.delta, true);
 
-    CRGB star_color = CRGB(pattern.sec_color);
-    static uint32_t last_change = 0;
+    // CRGB star_color = CRGB(pattern.sec_color);
+    // static uint32_t last_change = 0;
 
-    if (millis() - last_change > pattern.param2) {
-      last_change = millis();
-      if (star_index < NUM_LEDS) {
-        for (uint16_t i = star_index; i < (star_index + pattern.param3); i++) {
-          if (i < (NUM_LEDS - 1)) {
-            overlay_leds[i] = star_color;
-          }
-        }
-        star_index += pattern.param1;
-      }
-    }
+    // if (millis() - last_change > pattern.param2) {
+    //   last_change = millis();
+    //   if (star_index < NUM_LEDS) {
+    //     for (uint16_t i = star_index; i < (star_index + pattern.param3); i++) {
+    //       if (i < (NUM_LEDS - 1)) {
+    //         overlay_leds[i] = star_color;
+    //       }
+    //     }
+    //     star_index += pattern.param1;
+    //   }
+    // }
 
     fadeToBlackBy(overlay_leds, NUM_LEDS, 32);
 
@@ -362,6 +378,7 @@ void loop() {
 
     // fill_palette(leds, NUM_LEDS, delta, 2, p, 255, LINEARBLEND);
   }
+  xSemaphoreGive(param_access);
 
   EVERY_N_SECONDS(10) {
     Serial.print("Calculation time: ");
@@ -371,18 +388,11 @@ void loop() {
 
   FastLED.show();
   FastLED.delay(1000 / FPS);
+}
 
-  EVERY_N_MILLISECONDS(1000 / CALC_FPS) {
-    static uint8_t delta_sin = 0;
+void calcHandler() {
+  xSemaphoreTake(param_access, portMAX_DELAY);
+  runtime_data.delta += 1;
 
-    if (delta_sin < 180) {
-      delta += 1;
-    } else if (delta_sin < 220) {
-      delta += 2;
-    } else {
-      delta += 4;
-    }
-
-    delta_sin += pattern.move_speed;
-  }
+  xSemaphoreGive(param_access);
 }
