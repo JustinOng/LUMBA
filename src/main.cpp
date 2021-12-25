@@ -370,7 +370,7 @@ void loop() {
   FastLED.delay(1000 / FPS);
 }
 
-void calcHandler() {
+void IRAM_ATTR calcHandler() {
   xSemaphoreTakeFromISR(param_access, NULL);
   runtime_data.delta += 1;
   xSemaphoreGive(param_access);
