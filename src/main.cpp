@@ -173,6 +173,51 @@ String params =
     "'default':'0'"
     "},"
     "{"
+    "'name':'effect_num',"
+    "'label':'Effect',"
+    "'type':" +
+    String(INPUTRADIO) +
+    ","
+    "'options':["
+    "{'v':'0','l':'Star Ladder'}"
+    "],'default':'0'"
+    "},"
+    "{"
+    "'name':'eff_sl_color',"
+    "'label':'Star Ladder: Color',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#ffffff'"
+    "},"
+    "{"
+    "'name':'eff_sl_step',"
+    "'label':'Star Ladder: Step Size',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'5'"
+    "},"
+    "{"
+    "'name':'eff_sl_length',"
+    "'label':'Star Ladder: Length',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'2'"
+    "},"
+    "{"
+    "'name':'eff_sl_interval',"
+    "'label':'Star Ladder: Interval',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'100'"
+    "},"
+    "{"
     "'name':'param1',"
     "'label':'Parameter1',"
     "'type':" +
@@ -231,6 +276,12 @@ void readParams() {
   pattern.wave_duty = conf.getInt("wave_duty");
 
   pattern.num = conf.getValue("pattern_num")[0];
+  pattern.effect_num = conf.getValue("effect_num")[0];
+
+  pattern.eff_sl_color = strtol(conf.getString("eff_sl_color").c_str() + 1, NULL, 16);
+  pattern.eff_sl_step = conf.getInt("eff_sl_step");
+  pattern.eff_sl_length = conf.getInt("eff_sl_length");
+  pattern.eff_sl_interval = conf.getInt("eff_sl_interval");
 
   pattern.param1 = conf.getInt("param1");
   pattern.param2 = conf.getInt("param2");
@@ -255,8 +306,6 @@ hw_timer_t* timer = NULL;
 
 typedef struct {
   uint8_t delta;
-  uint8_t line_length;
-  uint16_t star_index;
 } runtime_data_t;
 
 runtime_data_t runtime_data;
@@ -312,10 +361,19 @@ void setup() {
 }
 
 void loop() {
+  // index at which to next draw stars
+  // ranges from 0 (when initally triggered) to > NUM_LEDS (where it stops)
+  static uint16_t star_index = -1;
+
   runtime_data_t data;
   xSemaphoreTake(param_access, portMAX_DELAY);
   memcpy(&data, &runtime_data, sizeof(runtime_data_t));
   xSemaphoreGive(param_access);
+
+  if (sensorActivated(0)) {
+    star_index = 0;
+    Serial.println("Triggered");
+  }
 
   uint32_t start = micros();
   FastLED.setBrightness(pattern.brightness);
@@ -325,22 +383,24 @@ void loop() {
       drawWaves(leds, segments[i].start, segments[i].end, data.delta, segments[i].invert);
     }
 
-    // CRGB star_color = CRGB(pattern.sec_color);
-    // static uint32_t last_change = 0;
+    if (pattern.effect_num == '0') {
+      CRGB star_color = CRGB(pattern.eff_sl_color);
+      static uint32_t last_change = 0;
 
-    // if (millis() - last_change > pattern.param2) {
-    //   last_change = millis();
-    //   if (star_index < NUM_LEDS) {
-    //     for (uint16_t i = star_index; i < (star_index + pattern.param3); i++) {
-    //       if (i < (NUM_LEDS - 1)) {
-    //         overlay_leds[i] = star_color;
-    //       }
-    //     }
-    //     star_index += pattern.param1;
-    //   }
-    // }
+      if (star_index < NUM_LEDS) {
+        if (millis() - last_change > pattern.eff_sl_interval) {
+          last_change = millis();
+          for (uint16_t i = star_index; i < (star_index + pattern.eff_sl_length); i++) {
+            if (i < (NUM_LEDS - 1)) {
+              overlay_leds[i] = star_color;
+            }
+          }
+          star_index += pattern.eff_sl_step;
+        }
+      }
 
-    fadeToBlackBy(overlay_leds, NUM_LEDS, 32);
+      fadeToBlackBy(overlay_leds, NUM_LEDS, 32);
+    }
 
     for (uint16_t i = 0; i < NUM_LEDS; i++) {
       leds[i] += overlay_leds[i];
