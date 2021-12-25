@@ -26,6 +26,16 @@ segment_t segments[] = {
      .end = 90,
      .invert = true}};
 
+// this defines the segments that the star ladder effect will be drawn on
+// note: invert is ignored
+segment_t segments_star_ladder[] = {
+    {.start = 44,
+     .end = 0},
+    {.start = 45,
+     .end = 90}};
+
+constexpr uint8_t NUM_SEGMENTS_STAR_LADDER = sizeof(segments_star_ladder) / sizeof(segment_t);
+
 #define DATA_PIN 25
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
@@ -362,8 +372,7 @@ void setup() {
 
 void loop() {
   // index at which to next draw stars
-  // ranges from 0 (when initally triggered) to > NUM_LEDS (where it stops)
-  static uint16_t star_index = -1;
+  static int16_t star_ladder_indexes[NUM_SEGMENTS_STAR_LADDER] = {0};
 
   runtime_data_t data;
   xSemaphoreTake(param_access, portMAX_DELAY);
@@ -374,7 +383,9 @@ void loop() {
   if (millis() - last_sensor_read > 100) {
     last_sensor_read = millis();
     if (sensorActivated(0)) {
-      star_index = 0;
+      for (uint8_t i = 0; i < NUM_SEGMENTS_STAR_LADDER; i++) {
+        star_ladder_indexes[i] = segments_star_ladder[i].start;
+      }
       Serial.println("Triggered");
     }
   }
@@ -391,15 +402,34 @@ void loop() {
       CRGB star_color = CRGB(pattern.eff_sl_color);
       static uint32_t last_change = 0;
 
-      if (star_index < NUM_LEDS) {
-        if (millis() - last_change > pattern.eff_sl_interval) {
-          last_change = millis();
-          for (uint16_t i = star_index; i < (star_index + pattern.eff_sl_length); i++) {
-            if (i < (NUM_LEDS - 1)) {
-              overlay_leds[i] = star_color;
+      if (millis() - last_change > pattern.eff_sl_interval) {
+        last_change = millis();
+
+        for (uint8_t i = 0; i < NUM_SEGMENTS_STAR_LADDER; i++) {
+          // Yes, this is terrible, sorry. I probably should refactor and abstract out
+          // the handling of ascending and descending ranges cleanly.
+          if (segments_star_ladder[i].start < segments_star_ladder[i].end) {
+            if (star_ladder_indexes[i] > segments_star_ladder[i].end) {
+              continue;
             }
+
+            for (int16_t u = star_ladder_indexes[i]; u < (star_ladder_indexes[i] + pattern.eff_sl_length); u++) {
+              if (u <= (segments_star_ladder[i].end)) {
+                overlay_leds[u] = star_color;
+              }
+            }
+            star_ladder_indexes[i] += pattern.eff_sl_step;
+          } else {
+            if (star_ladder_indexes[i] < segments_star_ladder[i].end) {
+              continue;
+            }
+            for (int16_t u = star_ladder_indexes[i]; u > (star_ladder_indexes[i] - pattern.eff_sl_length); u--) {
+              if (u >= (segments_star_ladder[i].end)) {
+                overlay_leds[u] = star_color;
+              }
+            }
+            star_ladder_indexes[i] -= pattern.eff_sl_step;
           }
-          star_index += pattern.eff_sl_step;
         }
       }
 
