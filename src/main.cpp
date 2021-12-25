@@ -1,17 +1,11 @@
-#include <Adafruit_VL53L0X.h>
 #include <Arduino.h>
 #include <AsyncWebConfig.h>
 #include <ESPAsyncWebServer.h>
 #include <FastLED.h>
 
+#include "sensors.h"
+
 FASTLED_USING_NAMESPACE
-
-#define LOX1_ADDRESS 0x30
-#define LOX2_ADDRESS 0x31
-
-// set the pins to shutdown
-#define SHT_LOX1 18
-#define SHT_LOX2 19
 
 #define NUM_LEDS (720 + 70)
 #define NUM_MIDDLE (360 + 12)
@@ -201,9 +195,6 @@ CRGBPalette16 vary_palette;
 RandomChange change_palette(pattern.param1);
 RandomChange change_brightness(pattern.param2, 50, 255);
 
-Adafruit_VL53L0X lox1 = Adafruit_VL53L0X();
-Adafruit_VL53L0X lox2 = Adafruit_VL53L0X();
-
 void readParams() {
   pattern.fps = conf.getInt("fps");
   pattern.brightness = conf.getInt("brightness");
@@ -274,34 +265,7 @@ void setup() {
 
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
-  Wire.begin(23, 27);
-  pinMode(SHT_LOX1, OUTPUT);
-  pinMode(SHT_LOX2, OUTPUT);
-
-  digitalWrite(SHT_LOX1, LOW);
-  digitalWrite(SHT_LOX2, LOW);
-  delay(10);
-
-  digitalWrite(SHT_LOX1, HIGH);
-  delay(10);
-
-  if (!lox1.begin(LOX1_ADDRESS)) {
-    Serial.println("Could not detect VL53L0X unit 1");
-    while (1)
-      ;
-  }
-
-  digitalWrite(SHT_LOX2, HIGH);
-  delay(10);
-
-  if (!lox2.begin(LOX2_ADDRESS)) {
-    Serial.println("Could not detect VL53L0X unit 2");
-    while (1)
-      ;
-  }
-
-  lox1.startRangeContinuous();
-  lox2.startRangeContinuous();
+  init_sensors();
 }
 
 void drawSegment(uint16_t start, uint16_t end, uint8_t delta, bool invert) {
@@ -342,22 +306,6 @@ void loop() {
   static uint8_t line_length = 0;
 
   static uint16_t star_index = -1;
-
-  VL53L0X_RangingMeasurementData_t measurement;
-  if (lox1.getSingleRangingMeasurement(&measurement, false) == VL53L0X_ERROR_NONE) {
-    Serial.println(measurement.RangeMilliMeter);
-    static bool pWithinRange;
-
-    bool withinRange = measurement.RangeMilliMeter < 1000;
-
-    if (withinRange && !pWithinRange) {
-      star_index = 0;
-    }
-
-    pWithinRange = withinRange;
-  } else {
-    Serial.println("Failed to range");
-  }
 
   uint32_t start = micros();
   FastLED.setBrightness(pattern.brightness);
