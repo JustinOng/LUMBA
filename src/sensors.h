@@ -15,7 +15,7 @@ const uint8_t LOX_SHT[NUM_LOX] = {18, 19, 20, 21};
 extern bool sensor_init_ok[NUM_LOX];
 extern Adafruit_VL53L0X lox[NUM_LOX];
 
-void init_sensors();
-bool sensor_activated(uint8_t i);
+void initSensors();
+bool sensorActivated(uint8_t i);
 
 #endif

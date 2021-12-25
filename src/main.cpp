@@ -265,7 +265,7 @@ void setup() {
 
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
-  init_sensors();
+  initSensors();
 }
 
 void drawSegment(uint16_t start, uint16_t end, uint8_t delta, bool invert) {

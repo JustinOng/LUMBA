@@ -8,7 +8,7 @@ struct {
 bool sensor_init_ok[NUM_LOX] = {false};
 Adafruit_VL53L0X lox[NUM_LOX];
 
-void init_sensors() {
+void initSensors() {
   Wire.begin(PIN_SDA, PIN_SCL);
 
   // assert all RST
@@ -38,7 +38,7 @@ void init_sensors() {
   config.activate_debounce = 500;
 }
 
-bool sensor_activated(uint8_t i) {
+bool sensorActivated(uint8_t i) {
   static bool pWithinRange[NUM_LOX] = {false};
   static uint32_t last_activate[NUM_LOX] = {0};
 
