@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <AsyncElegantOTA.h>
 #include <AsyncWebConfig.h>
 #include <ESPAsyncWebServer.h>
 #include <FastLED.h>
@@ -134,6 +135,7 @@ void setup() {
   }
 
   server.on("/", handleRoot);
+  AsyncElegantOTA.begin(&server);
   server.begin();
   readParams();
 
