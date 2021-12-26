@@ -1,6 +1,8 @@
 #ifndef DYN_CONFIG_H
 #define DYN_CONFIG_H
 
+#include "drawWaves.h"
+
 typedef struct {
   char mode;
   uint16_t auto_interval;
@@ -12,9 +14,9 @@ typedef struct {
   uint8_t brightness;
   uint32_t sec_color;
   uint16_t move_speed;
-  uint32_t wave_color;
-  float wave_freq;
-  int8_t wave_duty;
+
+  wave_params_t waves[5];
+
   uint32_t fw_colors[5];
   uint8_t fw_increment;
 

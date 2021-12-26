@@ -73,17 +73,13 @@ String params =
     String(INPUTRADIO) +
     ","
     "'options':["
-    "{'v':'0','l':'Wave'},"
-    "{'v':'1','l':'Fireworks'}],"
+    "{'v':'0','l':'Wave 0'},"
+    "{'v':'1','l':'Wave 1'},"
+    "{'v':'2','l':'Wave 2'},"
+    "{'v':'3','l':'Wave 3'},"
+    "{'v':'4','l':'Wave 4'},"
+    "{'v':'5','l':'Fireworks'}],"
     "'default':'0'"
-    "},"
-    "{"
-    "'name':'wave_color',"
-    "'label':'Wave Color',"
-    "'type':" +
-    String(INPUTCOLOR) +
-    ","
-    "'default':'#ffffff'"
     "},"
     "{"
     "'name':'sec_color',"
@@ -103,8 +99,16 @@ String params =
     "'default':'1'"
     "},"
     "{"
-    "'name':'wave_freq',"
-    "'label':'Wave Frequency Scale',"
+    "'name':'wave_color',"
+    "'label':'Wave Color',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#ffffff'"
+    "},"
+    "{"
+    "'name':'wave0_speed',"
+    "'label':'Wave 0 Speed',"
     "'type':" +
     String(INPUTFLOAT) +
     ","
@@ -112,8 +116,125 @@ String params =
     "'default':'1'"
     "},"
     "{"
-    "'name':'wave_duty',"
-    "'label':'Wave Duty Scale',"
+    "'name':'wave0_freq',"
+    "'label':'Wave 0 Frequency Scale',"
+    "'type':" +
+    String(INPUTFLOAT) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
+    "'name':'wave0_duty',"
+    "'label':'Wave 0 Duty Scale',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':-254,'max':127,"
+    "'default':'0'"
+    "},"
+    "{"
+    "'name':'wave1_speed',"
+    "'label':'Wave 1 Speed',"
+    "'type':" +
+    String(INPUTFLOAT) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
+    "'name':'wave1_freq',"
+    "'label':'Wave 1 Frequency Scale',"
+    "'type':" +
+    String(INPUTFLOAT) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
+    "'name':'wave1_duty',"
+    "'label':'Wave 1 Duty Scale',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':-254,'max':127,"
+    "'default':'0'"
+    "},"
+    "{"
+    "'name':'wave2_speed',"
+    "'label':'Wave 2 Speed',"
+    "'type':" +
+    String(INPUTFLOAT) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
+    "'name':'wave2_freq',"
+    "'label':'Wave 2 Frequency Scale',"
+    "'type':" +
+    String(INPUTFLOAT) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
+    "'name':'wave2_duty',"
+    "'label':'Wave 2 Duty Scale',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':-254,'max':127,"
+    "'default':'0'"
+    "},"
+    "{"
+    "'name':'wave3_speed',"
+    "'label':'Wave 3 Speed',"
+    "'type':" +
+    String(INPUTFLOAT) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
+    "'name':'wave3_freq',"
+    "'label':'Wave 3 Frequency Scale',"
+    "'type':" +
+    String(INPUTFLOAT) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
+    "'name':'wave3_duty',"
+    "'label':'Wave 3 Duty Scale',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':-254,'max':127,"
+    "'default':'0'"
+    "},"
+    "{"
+    "'name':'wave4_speed',"
+    "'label':'Wave 4 Speed',"
+    "'type':" +
+    String(INPUTFLOAT) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
+    "'name':'wave4_freq',"
+    "'label':'Wave 4 Frequency Scale',"
+    "'type':" +
+    String(INPUTFLOAT) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
+    "'name':'wave4_duty',"
+    "'label':'Wave 4 Duty Scale',"
     "'type':" +
     String(INPUTNUMBER) +
     ","

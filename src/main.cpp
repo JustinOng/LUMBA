@@ -55,8 +55,6 @@ void readParams() {
   config.brightness = conf.getInt("brightness");
   config.sec_color = strtol(conf.getString("sec_color").c_str() + 1, NULL, 16);
 
-  config.wave_color = strtol(conf.getString("wave_color").c_str() + 1, NULL, 16);
-
   config.fw_colors[0] = strtol(conf.getString("fw_color_0").c_str() + 1, NULL, 16);
   config.fw_colors[1] = strtol(conf.getString("fw_color_1").c_str() + 1, NULL, 16);
   config.fw_colors[2] = strtol(conf.getString("fw_color_2").c_str() + 1, NULL, 16);
@@ -66,8 +64,18 @@ void readParams() {
   config.fw_increment = conf.getInt("fw_increment");
 
   config.move_speed = conf.getInt("move_speed");
-  config.wave_freq = conf.getFloat("wave_freq");
-  config.wave_duty = conf.getInt("wave_duty");
+
+  for (uint8_t i = 0; i < 5; i++) {
+    config.waves[i].color = strtol(conf.getString("wave_color").c_str() + 1, NULL, 16);
+
+    char buf[32];
+    sprintf(buf, "wave%d_speed", i);
+    config.waves[i].speed = conf.getInt(buf);
+    sprintf(buf, "wave%d_freq", i);
+    config.waves[i].freq = conf.getInt(buf);
+    sprintf(buf, "wave%d_duty", i);
+    config.waves[i].duty = conf.getInt(buf);
+  }
 
   config.mode = conf.getValue("mode")[0];
   config.pattern_num = conf.getValue("pattern_num")[0];
@@ -164,11 +172,12 @@ void setup() {
 // manual mode, param "pattern_num" overrides this
 uint8_t active_pattern = 0;
 uint32_t last_pattern_change = 0;
-constexpr uint8_t MAX_PATTERN = 1;
+constexpr uint8_t MAX_PATTERN = 5;
 
 void loop() {
   // index at which to next draw stars
   static int16_t star_ladder_indexes[NUM_SEGMENTS_STAR_LADDER] = {0};
+  static uint8_t pPattern = -1;
 
   runtime_data_t data;
   xSemaphoreTake(param_access, portMAX_DELAY);
@@ -206,7 +215,7 @@ void loop() {
   }
 
   CRGB* buf;
-  bool fade = millis() - last_pattern_change < config.fade_duration;
+  bool fade = ((millis() - last_pattern_change) < config.fade_duration) && (pPattern == 4 || pPattern == 5);
   if (fade) {
     buf = leds_buf;
   } else {
@@ -215,8 +224,12 @@ void loop() {
 
   switch (active_pattern) {
     case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4: {
       for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-        drawWaves(buf, segments[i].start, segments[i].end, data.delta, segments[i].invert);
+        drawWaves(buf, config.waves[active_pattern], segments[i].start, segments[i].end, data.delta, segments[i].invert);
       }
 
       if (config.effect_num == '0') {
@@ -261,7 +274,8 @@ void loop() {
         buf[i] += overlay_leds[i];
       }
       break;
-    case 1:
+    }
+    case 5:
       CRGBPalette16 fw_palette;
 
 #define MAP_PALETTE(start, end, color_index)       \
@@ -292,10 +306,15 @@ void loop() {
 
   FastLED.show();
   FastLED.delay(1000 / FPS);
+  pPattern = active_pattern;
 }
 
 void IRAM_ATTR calcHandler() {
   xSemaphoreTakeFromISR(param_access, NULL);
-  runtime_data.delta += config.move_speed;
+  if (active_pattern < 5) {
+    runtime_data.delta += config.waves[active_pattern].speed;
+  } else {
+    runtime_data.delta += config.move_speed;
+  }
   xSemaphoreGive(param_access);
 }
