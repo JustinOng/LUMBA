@@ -211,6 +211,9 @@ void loop() {
       if (active_pattern > MAX_PATTERN) {
         active_pattern = 0;
       }
+
+      Serial.print("Change to pattern ");
+      Serial.println(active_pattern);
     }
   }
 
@@ -310,11 +313,15 @@ void loop() {
 }
 
 void IRAM_ATTR calcHandler() {
+  // 16 bit so we can do fractional increases, take the upper 8 bits for actual delta
+  static uint16_t delta_shadow = 0;
   xSemaphoreTakeFromISR(param_access, NULL);
   if (active_pattern < 5) {
-    runtime_data.delta += config.waves[active_pattern].speed;
+    delta_shadow += config.waves[active_pattern].speed;
   } else {
-    runtime_data.delta += config.move_speed;
+    delta_shadow += config.move_speed;
   }
+
+  runtime_data.delta = delta_shadow >> 8;
   xSemaphoreGive(param_access);
 }

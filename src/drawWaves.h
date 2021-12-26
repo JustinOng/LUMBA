@@ -7,7 +7,7 @@ typedef struct {
   CRGB color;
   float freq;
   int8_t duty;
-  uint8_t speed;
+  uint16_t speed;
 } wave_params_t;
 
 void drawWaves(CRGB *leds, wave_params_t params, uint16_t start, uint16_t end, uint8_t delta, bool invert) {

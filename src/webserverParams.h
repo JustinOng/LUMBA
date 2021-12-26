@@ -95,8 +95,8 @@ String params =
     "'type':" +
     String(INPUTNUMBER) +
     ","
-    "'min':1,'max':255,"
-    "'default':'1'"
+    "'min':1,'max':65535,"
+    "'default':'255'"
     "},"
     "{"
     "'name':'wave_color',"
@@ -110,10 +110,10 @@ String params =
     "'name':'wave0_speed',"
     "'label':'Wave 0 Speed',"
     "'type':" +
-    String(INPUTFLOAT) +
+    String(INPUTNUMBER) +
     ","
-    "'min':1,'max':255,"
-    "'default':'1'"
+    "'min':1,'max':65535,"
+    "'default':'255'"
     "},"
     "{"
     "'name':'wave0_freq',"
@@ -137,10 +137,10 @@ String params =
     "'name':'wave1_speed',"
     "'label':'Wave 1 Speed',"
     "'type':" +
-    String(INPUTFLOAT) +
+    String(INPUTNUMBER) +
     ","
-    "'min':1,'max':255,"
-    "'default':'1'"
+    "'min':1,'max':65535,"
+    "'default':'255'"
     "},"
     "{"
     "'name':'wave1_freq',"
@@ -164,10 +164,10 @@ String params =
     "'name':'wave2_speed',"
     "'label':'Wave 2 Speed',"
     "'type':" +
-    String(INPUTFLOAT) +
+    String(INPUTNUMBER) +
     ","
-    "'min':1,'max':255,"
-    "'default':'1'"
+    "'min':1,'max':65535,"
+    "'default':'255'"
     "},"
     "{"
     "'name':'wave2_freq',"
@@ -191,10 +191,10 @@ String params =
     "'name':'wave3_speed',"
     "'label':'Wave 3 Speed',"
     "'type':" +
-    String(INPUTFLOAT) +
+    String(INPUTNUMBER) +
     ","
-    "'min':1,'max':255,"
-    "'default':'1'"
+    "'min':1,'max':65535,"
+    "'default':'255'"
     "},"
     "{"
     "'name':'wave3_freq',"
@@ -218,10 +218,10 @@ String params =
     "'name':'wave4_speed',"
     "'label':'Wave 4 Speed',"
     "'type':" +
-    String(INPUTFLOAT) +
+    String(INPUTNUMBER) +
     ","
-    "'min':1,'max':255,"
-    "'default':'1'"
+    "'min':1,'max':65535,"
+    "'default':'255'"
     "},"
     "{"
     "'name':'wave4_freq',"
