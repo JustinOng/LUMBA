@@ -40,6 +40,15 @@ String params =
     "'default':'0'"
     "},"
     "{"
+    "'name':'auto_interval',"
+    "'label':'Auto Cycle Interval (s)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'10'"
+    "},"
+    "{"
     "'name':'pattern_num',"
     "'label':'Pattern',"
     "'type':" +

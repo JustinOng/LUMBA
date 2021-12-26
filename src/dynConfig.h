@@ -3,6 +3,7 @@
 
 typedef struct {
   char mode;
+  uint16_t auto_interval;
   char pattern_num;
 
   uint8_t brightness;

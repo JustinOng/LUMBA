@@ -74,6 +74,8 @@ void readParams() {
   config.eff_sl_length = conf.getInt("eff_sl_length");
   config.eff_sl_interval = conf.getInt("eff_sl_interval");
 
+  config.auto_interval = conf.getInt("auto_interval");
+
   config.param1 = conf.getInt("param1");
   config.param2 = conf.getInt("param2");
   config.param3 = conf.getInt("param3");
@@ -154,7 +156,9 @@ void setup() {
 
 // auto mode: controls which wave state/fireworks is being displayed
 // manual mode, param "pattern_num" overrides this
-uint8_t state = 0;
+uint8_t active_pattern = 0;
+uint32_t last_pattern_change = 0;
+constexpr uint8_t MAX_PATTERN = 1;
 
 void loop() {
   // index at which to next draw stars
@@ -179,68 +183,87 @@ void loop() {
   uint32_t start = micros();
   FastLED.setBrightness(config.brightness);
 
-  if (config.pattern_num == '0') {
-    for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-      drawWaves(leds, segments[i].start, segments[i].end, data.delta, segments[i].invert);
+  if (config.mode == '0') {
+    // manual
+    // convert ASCII digit into number
+    active_pattern = config.pattern_num - '0';
+  } else {
+    // auto
+    if ((millis() - last_pattern_change) > (config.auto_interval * 1000)) {
+      last_pattern_change = millis();
+      active_pattern++;
+
+      if (active_pattern > MAX_PATTERN) {
+        active_pattern = 0;
+      }
     }
+  }
 
-    if (config.effect_num == '0') {
-      CRGB star_color = CRGB(config.eff_sl_color);
-      static uint32_t last_change = 0;
-
-      if (millis() - last_change > config.eff_sl_interval) {
-        last_change = millis();
-
-        for (uint8_t i = 0; i < NUM_SEGMENTS_STAR_LADDER; i++) {
-          // Yes, this is terrible, sorry. I probably should refactor and abstract out
-          // the handling of ascending and descending ranges cleanly.
-          if (segments_star_ladder[i].start < segments_star_ladder[i].end) {
-            if (star_ladder_indexes[i] > segments_star_ladder[i].end) {
-              continue;
-            }
-
-            for (int16_t u = star_ladder_indexes[i]; u < (star_ladder_indexes[i] + config.eff_sl_length); u++) {
-              if (u <= (segments_star_ladder[i].end)) {
-                overlay_leds[u] = star_color;
-              }
-            }
-            star_ladder_indexes[i] += config.eff_sl_step;
-          } else {
-            if (star_ladder_indexes[i] < segments_star_ladder[i].end) {
-              continue;
-            }
-            for (int16_t u = star_ladder_indexes[i]; u > (star_ladder_indexes[i] - config.eff_sl_length); u--) {
-              if (u >= (segments_star_ladder[i].end)) {
-                overlay_leds[u] = star_color;
-              }
-            }
-            star_ladder_indexes[i] -= config.eff_sl_step;
-          }
-        }
+  switch (active_pattern) {
+    case 0:
+      for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
+        drawWaves(leds, segments[i].start, segments[i].end, data.delta, segments[i].invert);
       }
 
-      fadeToBlackBy(overlay_leds, NUM_LEDS, 32);
-    }
+      if (config.effect_num == '0') {
+        static uint32_t last_change = 0;
+        CRGB star_color = CRGB(config.eff_sl_color);
 
-    for (uint16_t i = 0; i < NUM_LEDS; i++) {
-      leds[i] += overlay_leds[i];
-    }
-  } else if (config.pattern_num == '1') {
-    CRGBPalette16 fw_palette;
+        if (millis() - last_change > config.eff_sl_interval) {
+          last_change = millis();
+
+          for (uint8_t i = 0; i < NUM_SEGMENTS_STAR_LADDER; i++) {
+            // Yes, this is terrible, sorry. I probably should refactor and abstract out
+            // the handling of ascending and descending ranges cleanly.
+            if (segments_star_ladder[i].start < segments_star_ladder[i].end) {
+              if (star_ladder_indexes[i] > segments_star_ladder[i].end) {
+                continue;
+              }
+
+              for (int16_t u = star_ladder_indexes[i]; u < (star_ladder_indexes[i] + config.eff_sl_length); u++) {
+                if (u <= (segments_star_ladder[i].end)) {
+                  overlay_leds[u] = star_color;
+                }
+              }
+              star_ladder_indexes[i] += config.eff_sl_step;
+            } else {
+              if (star_ladder_indexes[i] < segments_star_ladder[i].end) {
+                continue;
+              }
+              for (int16_t u = star_ladder_indexes[i]; u > (star_ladder_indexes[i] - config.eff_sl_length); u--) {
+                if (u >= (segments_star_ladder[i].end)) {
+                  overlay_leds[u] = star_color;
+                }
+              }
+              star_ladder_indexes[i] -= config.eff_sl_step;
+            }
+          }
+        }
+
+        fadeToBlackBy(overlay_leds, NUM_LEDS, 32);
+      }
+
+      for (uint16_t i = 0; i < NUM_LEDS; i++) {
+        leds[i] += overlay_leds[i];
+      }
+      break;
+    case 1:
+      CRGBPalette16 fw_palette;
 
 #define MAP_PALETTE(start, end, color_index)       \
   for (uint8_t i = start; i < end; i++) {          \
     fw_palette[i] = config.fw_colors[color_index]; \
   }
-    MAP_PALETTE(0, 2, 0)
-    MAP_PALETTE(3, 5, 1)
-    MAP_PALETTE(6, 8, 2)
-    MAP_PALETTE(8, 11, 3)
-    MAP_PALETTE(12, 15, 4)
+      MAP_PALETTE(0, 2, 0)
+      MAP_PALETTE(3, 5, 1)
+      MAP_PALETTE(6, 8, 2)
+      MAP_PALETTE(8, 11, 3)
+      MAP_PALETTE(12, 15, 4)
 
-    for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-      drawFireworks(leds, fw_palette, segments[i].start, segments[i].end, data.delta, segments[i].invert);
-    }
+      for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
+        drawFireworks(leds, fw_palette, segments[i].start, segments[i].end, data.delta, segments[i].invert);
+      }
+      break;
   }
 
   EVERY_N_SECONDS(10) {
