@@ -65,7 +65,8 @@ void readParams() {
   pattern.wave_freq = conf.getFloat("wave_freq");
   pattern.wave_duty = conf.getInt("wave_duty");
 
-  pattern.num = conf.getValue("pattern_num")[0];
+  pattern.mode = conf.getValue("mode")[0];
+  pattern.pattern_num = conf.getValue("pattern_num")[0];
   pattern.effect_num = conf.getValue("effect_num")[0];
 
   pattern.eff_sl_color = strtol(conf.getString("eff_sl_color").c_str() + 1, NULL, 16);
@@ -151,6 +152,10 @@ void setup() {
   timerAlarmEnable(timer);
 }
 
+// auto mode: controls which wave state/fireworks is being displayed
+// manual mode, param "pattern_num" overrides this
+uint8_t state = 0;
+
 void loop() {
   // index at which to next draw stars
   static int16_t star_ladder_indexes[NUM_SEGMENTS_STAR_LADDER] = {0};
@@ -174,7 +179,7 @@ void loop() {
   uint32_t start = micros();
   FastLED.setBrightness(pattern.brightness);
 
-  if (pattern.num == '0') {
+  if (pattern.pattern_num == '0') {
     for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
       drawWaves(leds, segments[i].start, segments[i].end, data.delta, segments[i].invert);
     }
@@ -220,7 +225,7 @@ void loop() {
     for (uint16_t i = 0; i < NUM_LEDS; i++) {
       leds[i] += overlay_leds[i];
     }
-  } else if (pattern.num == '1') {
+  } else if (pattern.pattern_num == '1') {
     CRGBPalette16 fw_palette;
 
 #define MAP_PALETTE(start, end, color_index)        \

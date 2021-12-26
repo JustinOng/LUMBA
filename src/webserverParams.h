@@ -20,6 +20,37 @@ String params =
     "'default':''"
     "},"
     "{"
+    "'name':'brightness',"
+    "'label':'Brightness',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':0,'max':255,"
+    "'default':'60'"
+    "},"
+    "{"
+    "'name':'mode',"
+    "'label':'Mode',"
+    "'type':" +
+    String(INPUTRADIO) +
+    ","
+    "'options':["
+    "{'v':'0','l':'Manual'},"
+    "{'v':'1','l':'Auto'}],"
+    "'default':'0'"
+    "},"
+    "{"
+    "'name':'pattern_num',"
+    "'label':'Pattern',"
+    "'type':" +
+    String(INPUTRADIO) +
+    ","
+    "'options':["
+    "{'v':'0','l':'Wave'},"
+    "{'v':'1','l':'Fireworks'}],"
+    "'default':'0'"
+    "},"
+    "{"
     "'name':'wave_color',"
     "'label':'Wave Color',"
     "'type':" +
@@ -34,15 +65,6 @@ String params =
     String(INPUTCOLOR) +
     ","
     "'default':'#00ff00'"
-    "},"
-    "{"
-    "'name':'brightness',"
-    "'label':'Brightness',"
-    "'type':" +
-    String(INPUTNUMBER) +
-    ","
-    "'min':0,'max':255,"
-    "'default':'60'"
     "},"
     "{"
     "'name':'move_speed',"
@@ -119,17 +141,6 @@ String params =
     ","
     "'min':1,'max':255,"
     "'default':'1'"
-    "},"
-    "{"
-    "'name':'pattern_num',"
-    "'label':'Pattern',"
-    "'type':" +
-    String(INPUTRADIO) +
-    ","
-    "'options':["
-    "{'v':'0','l':'Wave'},"
-    "{'v':'1','l':'Fireworks'}],"
-    "'default':'0'"
     "},"
     "{"
     "'name':'effect_num',"

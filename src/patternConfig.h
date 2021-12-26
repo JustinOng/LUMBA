@@ -2,7 +2,9 @@
 #define PATTERN_CONFIG_H
 
 typedef struct params {
-  char num;
+  char mode;
+  char pattern_num;
+
   uint8_t brightness;
   uint32_t sec_color;
   uint16_t move_speed;
