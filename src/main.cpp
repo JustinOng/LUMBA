@@ -131,7 +131,7 @@ void setup() {
 
   if (!connected) {
     WiFi.mode(WIFI_AP);
-    WiFi.softAP("Sail1", "long password");
+    WiFi.softAP(conf.getApName(), "long password");
   }
 
   server.on("/", handleRoot);

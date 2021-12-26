@@ -182,6 +182,8 @@ void AsyncWebConfig::addDescription(String parameter){
   }
   _apName = WiFi.macAddress();
   _apName.replace(":","");
+
+  _apName = "Sail " + _apName;
   if (!SPIFFS.begin()) {
     SPIFFS.format();
     SPIFFS.begin();
