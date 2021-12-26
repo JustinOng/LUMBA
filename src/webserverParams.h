@@ -20,15 +20,6 @@ String params =
     "'default':''"
     "},"
     "{"
-    "'name':'fps',"
-    "'label':'FPS',"
-    "'type':" +
-    String(INPUTNUMBER) +
-    ","
-    "'min':1,"
-    "'default':'60'"
-    "},"
-    "{"
     "'name':'wave_color',"
     "'label':'Wave Color',"
     "'type':" +

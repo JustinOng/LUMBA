@@ -3,7 +3,6 @@
 
 typedef struct params {
   char num;
-  uint16_t fps;
   uint8_t brightness;
   uint32_t sec_color;
   uint16_t move_speed;

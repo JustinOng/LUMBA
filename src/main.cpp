@@ -48,7 +48,6 @@ CRGB overlay_leds[NUM_LEDS];
 void calcHandler();
 
 void readParams() {
-  pattern.fps = conf.getInt("fps");
   pattern.brightness = conf.getInt("brightness");
   pattern.sec_color = strtol(conf.getString("sec_color").c_str() + 1, NULL, 16);
 
