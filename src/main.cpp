@@ -7,7 +7,7 @@
 #include "config.h"
 #include "drawFireworks.h"
 #include "drawWaves.h"
-#include "patternConfig.h"
+#include "dynConfig.h"
 #include "sensors.h"
 #include "webserverParams.h"
 
@@ -40,7 +40,7 @@ constexpr uint8_t NUM_SEGMENTS_STAR_LADDER = sizeof(segments_star_ladder) / size
 AsyncWebServer server(80);
 AsyncWebConfig conf;
 
-pattern_config_t pattern;
+dyn_config_t config;
 
 CRGB leds[NUM_LEDS];
 CRGB overlay_leds[NUM_LEDS];
@@ -48,35 +48,35 @@ CRGB overlay_leds[NUM_LEDS];
 void calcHandler();
 
 void readParams() {
-  pattern.brightness = conf.getInt("brightness");
-  pattern.sec_color = strtol(conf.getString("sec_color").c_str() + 1, NULL, 16);
+  config.brightness = conf.getInt("brightness");
+  config.sec_color = strtol(conf.getString("sec_color").c_str() + 1, NULL, 16);
 
-  pattern.wave_color = strtol(conf.getString("wave_color").c_str() + 1, NULL, 16);
+  config.wave_color = strtol(conf.getString("wave_color").c_str() + 1, NULL, 16);
 
-  pattern.fw_colors[0] = strtol(conf.getString("fw_color_0").c_str() + 1, NULL, 16);
-  pattern.fw_colors[1] = strtol(conf.getString("fw_color_1").c_str() + 1, NULL, 16);
-  pattern.fw_colors[2] = strtol(conf.getString("fw_color_2").c_str() + 1, NULL, 16);
-  pattern.fw_colors[3] = strtol(conf.getString("fw_color_3").c_str() + 1, NULL, 16);
-  pattern.fw_colors[4] = strtol(conf.getString("fw_color_4").c_str() + 1, NULL, 16);
+  config.fw_colors[0] = strtol(conf.getString("fw_color_0").c_str() + 1, NULL, 16);
+  config.fw_colors[1] = strtol(conf.getString("fw_color_1").c_str() + 1, NULL, 16);
+  config.fw_colors[2] = strtol(conf.getString("fw_color_2").c_str() + 1, NULL, 16);
+  config.fw_colors[3] = strtol(conf.getString("fw_color_3").c_str() + 1, NULL, 16);
+  config.fw_colors[4] = strtol(conf.getString("fw_color_4").c_str() + 1, NULL, 16);
 
-  pattern.fw_increment = conf.getInt("fw_increment");
+  config.fw_increment = conf.getInt("fw_increment");
 
-  pattern.move_speed = conf.getInt("move_speed");
-  pattern.wave_freq = conf.getFloat("wave_freq");
-  pattern.wave_duty = conf.getInt("wave_duty");
+  config.move_speed = conf.getInt("move_speed");
+  config.wave_freq = conf.getFloat("wave_freq");
+  config.wave_duty = conf.getInt("wave_duty");
 
-  pattern.mode = conf.getValue("mode")[0];
-  pattern.pattern_num = conf.getValue("pattern_num")[0];
-  pattern.effect_num = conf.getValue("effect_num")[0];
+  config.mode = conf.getValue("mode")[0];
+  config.pattern_num = conf.getValue("pattern_num")[0];
+  config.effect_num = conf.getValue("effect_num")[0];
 
-  pattern.eff_sl_color = strtol(conf.getString("eff_sl_color").c_str() + 1, NULL, 16);
-  pattern.eff_sl_step = conf.getInt("eff_sl_step");
-  pattern.eff_sl_length = conf.getInt("eff_sl_length");
-  pattern.eff_sl_interval = conf.getInt("eff_sl_interval");
+  config.eff_sl_color = strtol(conf.getString("eff_sl_color").c_str() + 1, NULL, 16);
+  config.eff_sl_step = conf.getInt("eff_sl_step");
+  config.eff_sl_length = conf.getInt("eff_sl_length");
+  config.eff_sl_interval = conf.getInt("eff_sl_interval");
 
-  pattern.param1 = conf.getInt("param1");
-  pattern.param2 = conf.getInt("param2");
-  pattern.param3 = conf.getInt("param3");
+  config.param1 = conf.getInt("param1");
+  config.param2 = conf.getInt("param2");
+  config.param3 = conf.getInt("param3");
 }
 
 void handleRoot(AsyncWebServerRequest* request) {
@@ -177,18 +177,18 @@ void loop() {
   }
 
   uint32_t start = micros();
-  FastLED.setBrightness(pattern.brightness);
+  FastLED.setBrightness(config.brightness);
 
-  if (pattern.pattern_num == '0') {
+  if (config.pattern_num == '0') {
     for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
       drawWaves(leds, segments[i].start, segments[i].end, data.delta, segments[i].invert);
     }
 
-    if (pattern.effect_num == '0') {
-      CRGB star_color = CRGB(pattern.eff_sl_color);
+    if (config.effect_num == '0') {
+      CRGB star_color = CRGB(config.eff_sl_color);
       static uint32_t last_change = 0;
 
-      if (millis() - last_change > pattern.eff_sl_interval) {
+      if (millis() - last_change > config.eff_sl_interval) {
         last_change = millis();
 
         for (uint8_t i = 0; i < NUM_SEGMENTS_STAR_LADDER; i++) {
@@ -199,22 +199,22 @@ void loop() {
               continue;
             }
 
-            for (int16_t u = star_ladder_indexes[i]; u < (star_ladder_indexes[i] + pattern.eff_sl_length); u++) {
+            for (int16_t u = star_ladder_indexes[i]; u < (star_ladder_indexes[i] + config.eff_sl_length); u++) {
               if (u <= (segments_star_ladder[i].end)) {
                 overlay_leds[u] = star_color;
               }
             }
-            star_ladder_indexes[i] += pattern.eff_sl_step;
+            star_ladder_indexes[i] += config.eff_sl_step;
           } else {
             if (star_ladder_indexes[i] < segments_star_ladder[i].end) {
               continue;
             }
-            for (int16_t u = star_ladder_indexes[i]; u > (star_ladder_indexes[i] - pattern.eff_sl_length); u--) {
+            for (int16_t u = star_ladder_indexes[i]; u > (star_ladder_indexes[i] - config.eff_sl_length); u--) {
               if (u >= (segments_star_ladder[i].end)) {
                 overlay_leds[u] = star_color;
               }
             }
-            star_ladder_indexes[i] -= pattern.eff_sl_step;
+            star_ladder_indexes[i] -= config.eff_sl_step;
           }
         }
       }
@@ -225,12 +225,12 @@ void loop() {
     for (uint16_t i = 0; i < NUM_LEDS; i++) {
       leds[i] += overlay_leds[i];
     }
-  } else if (pattern.pattern_num == '1') {
+  } else if (config.pattern_num == '1') {
     CRGBPalette16 fw_palette;
 
-#define MAP_PALETTE(start, end, color_index)        \
-  for (uint8_t i = start; i < end; i++) {           \
-    fw_palette[i] = pattern.fw_colors[color_index]; \
+#define MAP_PALETTE(start, end, color_index)       \
+  for (uint8_t i = start; i < end; i++) {          \
+    fw_palette[i] = config.fw_colors[color_index]; \
   }
     MAP_PALETTE(0, 2, 0)
     MAP_PALETTE(3, 5, 1)
@@ -255,6 +255,6 @@ void loop() {
 
 void IRAM_ATTR calcHandler() {
   xSemaphoreTakeFromISR(param_access, NULL);
-  runtime_data.delta += pattern.move_speed;
+  runtime_data.delta += config.move_speed;
   xSemaphoreGive(param_access);
 }

@@ -1,7 +1,7 @@
-#ifndef PATTERN_CONFIG_H
-#define PATTERN_CONFIG_H
+#ifndef DYN_CONFIG_H
+#define DYN_CONFIG_H
 
-typedef struct params {
+typedef struct {
   char mode;
   char pattern_num;
 
@@ -24,8 +24,8 @@ typedef struct params {
   uint16_t param1;
   uint16_t param2;
   uint16_t param3;
-} pattern_config_t;
+} dyn_config_t;
 
-extern pattern_config_t pattern;
+extern dyn_config_t config;
 
 #endif
