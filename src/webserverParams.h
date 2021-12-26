@@ -49,6 +49,24 @@ String params =
     "'default':'10'"
     "},"
     "{"
+    "'name':'fade_duration',"
+    "'label':'Pattern Change Fade Duration',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'3000'"
+    "},"
+    "{"
+    "'name':'fade_blend',"
+    "'label':'Pattern Change Fade Blend',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'8'"
+    "},"
+    "{"
     "'name':'pattern_num',"
     "'label':'Pattern',"
     "'type':" +

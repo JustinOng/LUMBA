@@ -4,6 +4,9 @@
 typedef struct {
   char mode;
   uint16_t auto_interval;
+  uint16_t fade_duration;
+  uint8_t fade_blend;
+
   char pattern_num;
 
   uint8_t brightness;

@@ -42,8 +42,12 @@ AsyncWebConfig conf;
 
 dyn_config_t config;
 
+// represents actual data written to the LED
 CRGB leds[NUM_LEDS];
+// used for certain effects
 CRGB overlay_leds[NUM_LEDS];
+// buffer for fading
+CRGB leds_buf[NUM_LEDS];
 
 void calcHandler();
 
@@ -75,6 +79,8 @@ void readParams() {
   config.eff_sl_interval = conf.getInt("eff_sl_interval");
 
   config.auto_interval = conf.getInt("auto_interval");
+  config.fade_duration = conf.getInt("fade_duration");
+  config.fade_blend = conf.getInt("fade_blend");
 
   config.param1 = conf.getInt("param1");
   config.param2 = conf.getInt("param2");
@@ -199,10 +205,18 @@ void loop() {
     }
   }
 
+  CRGB* buf;
+  bool fade = millis() - last_pattern_change < config.fade_duration;
+  if (fade) {
+    buf = leds_buf;
+  } else {
+    buf = leds;
+  }
+
   switch (active_pattern) {
     case 0:
       for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-        drawWaves(leds, segments[i].start, segments[i].end, data.delta, segments[i].invert);
+        drawWaves(buf, segments[i].start, segments[i].end, data.delta, segments[i].invert);
       }
 
       if (config.effect_num == '0') {
@@ -244,7 +258,7 @@ void loop() {
       }
 
       for (uint16_t i = 0; i < NUM_LEDS; i++) {
-        leds[i] += overlay_leds[i];
+        buf[i] += overlay_leds[i];
       }
       break;
     case 1:
@@ -261,9 +275,13 @@ void loop() {
       MAP_PALETTE(12, 15, 4)
 
       for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-        drawFireworks(leds, fw_palette, segments[i].start, segments[i].end, data.delta, segments[i].invert);
+        drawFireworks(buf, fw_palette, segments[i].start, segments[i].end, data.delta, segments[i].invert);
       }
       break;
+  }
+
+  if (fade) {
+    nblend(leds, leds_buf, NUM_LEDS, config.fade_blend);
   }
 
   EVERY_N_SECONDS(10) {
