@@ -251,6 +251,6 @@ void loop() {
 
 void IRAM_ATTR calcHandler() {
   xSemaphoreTakeFromISR(param_access, NULL);
-  runtime_data.delta += 1;
+  runtime_data.delta += pattern.move_speed;
   xSemaphoreGive(param_access);
 }
