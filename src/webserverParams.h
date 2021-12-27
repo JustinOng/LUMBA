@@ -390,6 +390,15 @@ String params =
     "'default':'#ffffff'"
     "},"
     "{"
+    "'name':'eff_line_speed',"
+    "'label':'Line: Speed',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'255'"
+    "},"
+    "{"
     "'name':'eff_line_duration',"
     "'label':'Line: Duration',"
     "'type':" +

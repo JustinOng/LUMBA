@@ -103,6 +103,7 @@ void readParams() {
   config.eff_rs_length = conf.getInt("eff_rs_length");
 
   config.eff_line_color = strtol(conf.getString("eff_line_color").c_str() + 1, NULL, 16);
+  config.eff_line_speed = conf.getInt("eff_line_speed");
   config.eff_line_duration = conf.getInt("eff_line_duration");
   config.eff_line_fade_dur = conf.getInt("eff_line_fade_dur");
   config.eff_line_period = conf.getInt("eff_line_period");
@@ -397,6 +398,7 @@ void loop() {
 void IRAM_ATTR calcHandler() {
   // 16 bit so we can do fractional increases, take the upper 8 bits for actual delta
   static uint16_t delta_shadow = 0;
+  // static uint16_t line_pos_shadow = 0;
   xSemaphoreTakeFromISR(param_access, NULL);
   if (active_pattern < 5) {
     delta_shadow += config.waves[active_pattern].speed;
@@ -406,6 +408,7 @@ void IRAM_ATTR calcHandler() {
 
   runtime_data.delta = delta_shadow >> 8;
 
-  runtime_data.line_pos++;
+  // line_pos_shadow += config.eff_line_speed;
+  runtime_data.line_pos += 1;
   xSemaphoreGive(param_access);
 }
