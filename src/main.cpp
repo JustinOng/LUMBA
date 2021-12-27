@@ -37,6 +37,16 @@ segment_t segments_star_ladder[] = {
 
 constexpr uint8_t NUM_SEGMENTS_STAR_LADDER = sizeof(segments_star_ladder) / sizeof(segment_t);
 
+// this defines the segments that the line effect will be drawn on
+// note: invert is ignored
+segment_t segments_line[] = {
+    {.start = 359,
+     .end = 0},
+    {.start = 360,
+     .end = 720}};
+
+constexpr uint8_t NUM_SEGMENTS_LINE = sizeof(segments_line) / sizeof(segment_t);
+
 AsyncWebServer server(80);
 AsyncWebConfig conf;
 
@@ -92,6 +102,12 @@ void readParams() {
   config.eff_rs_fade = conf.getInt("eff_rs_fade");
   config.eff_rs_length = conf.getInt("eff_rs_length");
 
+  config.eff_line_color = strtol(conf.getString("eff_line_color").c_str() + 1, NULL, 16);
+  config.eff_line_duration = conf.getInt("eff_line_duration");
+  config.eff_line_fade_dur = conf.getInt("eff_line_fade_dur");
+  config.eff_line_period = conf.getInt("eff_line_period");
+  config.eff_line_duty = conf.getInt("eff_line_duty");
+
   config.auto_interval = conf.getInt("auto_interval");
   config.fade_duration = conf.getInt("fade_duration");
   config.fade_blend = conf.getInt("fade_blend");
@@ -119,6 +135,7 @@ hw_timer_t* timer = NULL;
 
 typedef struct {
   uint8_t delta;
+  uint16_t line_pos;
 } runtime_data_t;
 
 runtime_data_t runtime_data;
@@ -185,6 +202,7 @@ void loop() {
   static int16_t star_ladder_indexes[NUM_SEGMENTS_STAR_LADDER] = {0};
   // how long more to draw random stars
   static uint32_t random_stars_start_time = -1;
+  static uint32_t line_start_time = -1;
   static uint8_t pPattern = -1;
 
   runtime_data_t data;
@@ -202,6 +220,9 @@ void loop() {
         }
       } else if (config.effect_num == '1') {
         random_stars_start_time = millis();
+      } else if (config.effect_num == '2') {
+        line_start_time = millis();
+        runtime_data.line_pos = 0;
       }
       Serial.println("Triggered");
     }
@@ -298,6 +319,40 @@ void loop() {
         }
 
         fadeToBlackBy(overlay_leds, NUM_LEDS, config.eff_rs_fade);
+      } else if (config.effect_num == '2') {
+        bool effectActive = (millis() - line_start_time) < (config.eff_line_duration + config.eff_line_fade_dur);
+
+        if (effectActive) {
+          for (uint8_t i = 0; i < NUM_SEGMENTS_LINE; i++) {
+            segment_t& segment = segments_line[i];
+
+            uint16_t c = runtime_data.line_pos;
+            if (segment.start < segment.end) {
+              for (int16_t u = segment.start; u < segment.end && (c < 2 * runtime_data.line_pos); u++) {
+                if (c % config.eff_line_period < config.eff_line_duty) {
+                  overlay_leds[u] = CRGB(config.eff_line_color);
+                } else {
+                  overlay_leds[u] = CRGB::Black;
+                }
+                c++;
+              }
+            } else {
+              for (int16_t u = segment.start; u > segment.end && (c < 2 * runtime_data.line_pos); u--) {
+                if (c % config.eff_line_period < config.eff_line_duty) {
+                  overlay_leds[u] = CRGB(config.eff_line_color);
+                } else {
+                  overlay_leds[u] = CRGB::Black;
+                }
+                c++;
+              }
+            }
+          }
+
+          int32_t fade_time = millis() - line_start_time - config.eff_line_duration;
+          if (fade_time >= 0) {
+            fadeLightBy(overlay_leds, NUM_LEDS, map(fade_time, 0, config.eff_line_fade_dur, 0, 255));
+          }
+        }
       }
 
       for (uint16_t i = 0; i < NUM_LEDS; i++) {
@@ -350,5 +405,7 @@ void IRAM_ATTR calcHandler() {
   }
 
   runtime_data.delta = delta_shadow >> 8;
+
+  runtime_data.line_pos++;
   xSemaphoreGive(param_access);
 }

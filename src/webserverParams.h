@@ -298,7 +298,8 @@ String params =
     ","
     "'options':["
     "{'v':'0','l':'Star Ladder'},"
-    "{'v':'1','l':'Random Stars'}"
+    "{'v':'1','l':'Random Stars'},"
+    "{'v':'2','l':'Lines'}"
     "],'default':'0'"
     "},"
     "{"
@@ -379,6 +380,50 @@ String params =
     ","
     "'min':1,'max':255,"
     "'default':'30'"
+    "},"
+    "{"
+    "'name':'eff_line_color',"
+    "'label':'Line: Color',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#ffffff'"
+    "},"
+    "{"
+    "'name':'eff_line_duration',"
+    "'label':'Line: Duration',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'3000'"
+    "},"
+    "{"
+    "'name':'eff_line_period',"
+    "'label':'Line: Period',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'10'"
+    "},"
+    "{"
+    "'name':'eff_line_duty',"
+    "'label':'Line: Duty',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'5'"
+    "},"
+    "{"
+    "'name':'eff_line_fade_dur',"
+    "'label':'Line: Fade Duration',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'1000'"
     "},"
     "{"
     "'name':'param1',"

@@ -33,6 +33,12 @@ typedef struct {
   uint8_t eff_rs_fade;
   uint8_t eff_rs_length;
 
+  uint32_t eff_line_color;
+  uint16_t eff_line_duration;
+  uint8_t eff_line_period;
+  uint8_t eff_line_duty;
+  uint16_t eff_line_fade_dur;
+
   uint16_t param1;
   uint16_t param2;
   uint16_t param3;
