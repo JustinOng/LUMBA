@@ -11,7 +11,8 @@ bool sensor_init_ok[NUM_LOX] = {false};
 VL53L0X lox[NUM_LOX];
 
 void initSensors() {
-  Wire.begin(PIN_SDA, PIN_SCL);
+  Wire.begin(23, 27);
+  // Wire.begin(PIN_SDA, PIN_SCL);
 
   // assert all RST
   for (uint8_t i = 0; i < NUM_LOX; i++) {

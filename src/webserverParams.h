@@ -297,7 +297,8 @@ String params =
     String(INPUTRADIO) +
     ","
     "'options':["
-    "{'v':'0','l':'Star Ladder'}"
+    "{'v':'0','l':'Star Ladder'},"
+    "{'v':'1','l':'Random Stars'}"
     "],'default':'0'"
     "},"
     "{"
@@ -328,12 +329,56 @@ String params =
     "},"
     "{"
     "'name':'eff_sl_interval',"
-    "'label':'Star Ladder: Interval',"
+    "'label':'Star Ladder: Interval (ms)',"
     "'type':" +
     String(INPUTNUMBER) +
     ","
     "'min':1,'max':65535,"
     "'default':'100'"
+    "},"
+    "{"
+    "'name':'eff_rs_color',"
+    "'label':'Random Stars: Color',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#ffffff'"
+    "},"
+    "{"
+    "'name':'eff_rs_duration',"
+    "'label':'Random Stars: Duration (ms)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'3000'"
+    "},"
+    "{"
+    "'name':'eff_rs_chance',"
+    "'label':'Random Stars: 1 in n chance',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'30'"
+    "},"
+    "{"
+    "'name':'eff_rs_length',"
+    "'label':'Random Stars: Star Length',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
+    "'name':'eff_rs_fade',"
+    "'label':'Random Stars: Fade',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'30'"
     "},"
     "{"
     "'name':'param1',"

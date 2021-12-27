@@ -20,20 +20,20 @@ typedef struct {
 } segment_t;
 
 segment_t segments[] = {
-    {.start = 44,
+    {.start = 359,
      .end = 0,
      .invert = true},
-    {.start = 45,
-     .end = 90,
+    {.start = 360,
+     .end = 720,
      .invert = true}};
 
 // this defines the segments that the star ladder effect will be drawn on
 // note: invert is ignored
 segment_t segments_star_ladder[] = {
-    {.start = 44,
+    {.start = 359,
      .end = 0},
-    {.start = 45,
-     .end = 90}};
+    {.start = 360,
+     .end = 720}};
 
 constexpr uint8_t NUM_SEGMENTS_STAR_LADDER = sizeof(segments_star_ladder) / sizeof(segment_t);
 
@@ -85,6 +85,12 @@ void readParams() {
   config.eff_sl_step = conf.getInt("eff_sl_step");
   config.eff_sl_length = conf.getInt("eff_sl_length");
   config.eff_sl_interval = conf.getInt("eff_sl_interval");
+
+  config.eff_rs_color = strtol(conf.getString("eff_rs_color").c_str() + 1, NULL, 16);
+  config.eff_rs_duration = conf.getInt("eff_rs_duration");
+  config.eff_rs_chance = conf.getInt("eff_rs_chance");
+  config.eff_rs_fade = conf.getInt("eff_rs_fade");
+  config.eff_rs_length = conf.getInt("eff_rs_length");
 
   config.auto_interval = conf.getInt("auto_interval");
   config.fade_duration = conf.getInt("fade_duration");
@@ -155,7 +161,7 @@ void setup() {
   server.begin();
   readParams();
 
-  FastLED.addLeds<LED_TYPE, PIN_LED_J7, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
   initSensors();
 
@@ -177,6 +183,8 @@ constexpr uint8_t MAX_PATTERN = 5;
 void loop() {
   // index at which to next draw stars
   static int16_t star_ladder_indexes[NUM_SEGMENTS_STAR_LADDER] = {0};
+  // how long more to draw random stars
+  static uint32_t random_stars_start_time = -1;
   static uint8_t pPattern = -1;
 
   runtime_data_t data;
@@ -188,8 +196,12 @@ void loop() {
   if (millis() - last_sensor_read > 100) {
     last_sensor_read = millis();
     if (sensorActivated(0)) {
-      for (uint8_t i = 0; i < NUM_SEGMENTS_STAR_LADDER; i++) {
-        star_ladder_indexes[i] = segments_star_ladder[i].start;
+      if (config.effect_num == '0') {
+        for (uint8_t i = 0; i < NUM_SEGMENTS_STAR_LADDER; i++) {
+          star_ladder_indexes[i] = segments_star_ladder[i].start;
+        }
+      } else if (config.effect_num == '1') {
+        random_stars_start_time = millis();
       }
       Serial.println("Triggered");
     }
@@ -271,6 +283,21 @@ void loop() {
         }
 
         fadeToBlackBy(overlay_leds, NUM_LEDS, 32);
+      } else if (config.effect_num == '1') {
+        if (millis() - random_stars_start_time < config.eff_rs_duration) {
+          uint16_t i = 0;
+          while (i < NUM_LEDS) {
+            if (random8(config.eff_rs_chance) == 0) {
+              for (uint16_t u = 0; u < config.eff_rs_length && i < NUM_LEDS; u++) {
+                overlay_leds[i++] = CRGB(config.eff_rs_color);
+              }
+            } else {
+              i++;
+            }
+          }
+        }
+
+        fadeToBlackBy(overlay_leds, NUM_LEDS, config.eff_rs_fade);
       }
 
       for (uint16_t i = 0; i < NUM_LEDS; i++) {
