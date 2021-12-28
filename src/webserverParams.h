@@ -299,7 +299,8 @@ String params =
     "'options':["
     "{'v':'0','l':'Star Ladder'},"
     "{'v':'1','l':'Random Stars'},"
-    "{'v':'2','l':'Lines'}"
+    "{'v':'2','l':'Lines'},"
+    "{'v':'3','l':'Solid Lines'}"
     "],'default':'0'"
     "},"
     "{"
@@ -435,31 +436,30 @@ String params =
     "'default':'1000'"
     "},"
     "{"
-    "'name':'param1',"
-    "'label':'Parameter1',"
+    "'name':'eff_sline_color',"
+    "'label':'Solid Line: Color',"
     "'type':" +
-    String(INPUTNUMBER) +
+    String(INPUTCOLOR) +
     ","
-    "'min':0,'max':65535,"
-    "'default':'60'"
+    "'default':'#ffffff'"
     "},"
     "{"
-    "'name':'param2',"
-    "'label':'Parameter2',"
+    "'name':'eff_sline_duration',"
+    "'label':'Solid Line: Duration',"
     "'type':" +
     String(INPUTNUMBER) +
     ","
-    "'min':0,'max':65535,"
-    "'default':'60'"
+    "'min':1,'max':65535,"
+    "'default':'255'"
     "},"
     "{"
-    "'name':'param3',"
-    "'label':'Parameter3',"
+    "'name':'eff_sline_speed',"
+    "'label':'Solid Line: Speed',"
     "'type':" +
     String(INPUTNUMBER) +
     ","
-    "'min':0,'max':255,"
-    "'default':'60'"
+    "'min':1,'max':65535,"
+    "'default':'255'"
     "}"
     "]";
 

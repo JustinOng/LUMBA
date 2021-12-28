@@ -47,6 +47,16 @@ segment_t segments_line[] = {
 
 constexpr uint8_t NUM_SEGMENTS_LINE = sizeof(segments_line) / sizeof(segment_t);
 
+// this defines the segments that the solid line effect will be drawn on
+// note: invert is ignored
+segment_t segments_sline[] = {
+    {.start = 359,
+     .end = 0},
+    {.start = 360,
+     .end = 720}};
+
+constexpr uint8_t NUM_SEGMENTS_SLINE = sizeof(segments_sline) / sizeof(segment_t);
+
 AsyncWebServer server(80);
 AsyncWebConfig conf;
 
@@ -109,6 +119,9 @@ void readParams() {
   config.eff_line_period = conf.getInt("eff_line_period");
   config.eff_line_duty = conf.getInt("eff_line_duty");
 
+  config.eff_sline_color = strtol(conf.getString("eff_sline_color").c_str() + 1, NULL, 16);
+  config.eff_sline_speed = conf.getInt("eff_sline_speed");
+
   config.auto_interval = conf.getInt("auto_interval");
   config.fade_duration = conf.getInt("fade_duration");
   config.fade_blend = conf.getInt("fade_blend");
@@ -137,6 +150,7 @@ hw_timer_t* timer = NULL;
 typedef struct {
   uint8_t delta;
   uint16_t line_pos;
+  uint16_t sline_pos;
 } runtime_data_t;
 
 runtime_data_t runtime_data;
@@ -204,6 +218,7 @@ void loop() {
   // how long more to draw random stars
   static uint32_t random_stars_start_time = -1;
   static uint32_t line_start_time = -1;
+  static uint32_t sline_start_time = -1;
   static uint8_t pPattern = -1;
 
   runtime_data_t data;
@@ -224,6 +239,9 @@ void loop() {
       } else if (config.effect_num == '2') {
         line_start_time = millis();
         runtime_data.line_pos = 0;
+      } else if (config.effect_num == '3') {
+        sline_start_time = millis();
+        runtime_data.sline_pos = 0;
       }
       Serial.println("Triggered");
     }
@@ -329,7 +347,7 @@ void loop() {
 
             uint16_t c = runtime_data.line_pos;
             if (segment.start < segment.end) {
-              for (int16_t u = segment.start; u < segment.end && (c < 2 * runtime_data.line_pos); u++) {
+              for (int16_t u = segment.start; u < segment.end && (c < 2 * data.line_pos); u++) {
                 if (c % config.eff_line_period < config.eff_line_duty) {
                   overlay_leds[u] = CRGB(config.eff_line_color);
                 } else {
@@ -338,7 +356,7 @@ void loop() {
                 c++;
               }
             } else {
-              for (int16_t u = segment.start; u > segment.end && (c < 2 * runtime_data.line_pos); u--) {
+              for (int16_t u = segment.start; u > segment.end && (c < 2 * data.line_pos); u--) {
                 if (c % config.eff_line_period < config.eff_line_duty) {
                   overlay_leds[u] = CRGB(config.eff_line_color);
                 } else {
@@ -353,6 +371,21 @@ void loop() {
           if (fade_time >= 0) {
             fadeLightBy(overlay_leds, NUM_LEDS, map(fade_time, 0, config.eff_line_fade_dur, 0, 255));
           }
+        }
+      } else if (config.effect_num == '3') {
+        if (millis() - sline_start_time < config.eff_sline_duration) {
+          for (uint8_t i = 0; i < NUM_SEGMENTS_SLINE; i++) {
+            segment_t& segment = segments_line[i];
+
+            CRGB line_color = CRGB(config.eff_sline_color);
+            if (segment.start < segment.end) {
+              for (uint16_t pos = segment.start; pos < segment.end && pos < (segment.start + data.sline_pos); pos++) {
+                overlay_leds[pos] = line_color;
+              }
+            }
+          }
+        } else {
+          fill_solid(overlay_leds, NUM_LEDS, CRGB::Black);
         }
       }
 
@@ -375,7 +408,7 @@ void loop() {
       MAP_PALETTE(12, 15, 4)
 
       for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-        drawFireworks(buf, fw_palette, segments[i].start, segments[i].end, data.delta, segments[i].invert);
+        drawFireworks(buf, fw_palette, segments[i].start, segments[i].end, data.delta, !segments[i].invert);
       }
       break;
   }
@@ -399,6 +432,7 @@ void IRAM_ATTR calcHandler() {
   // 16 bit so we can do fractional increases, take the upper 8 bits for actual delta
   static uint16_t delta_shadow = 0;
   // static uint16_t line_pos_shadow = 0;
+  static uint32_t sline_pos_shadow = 0;
   xSemaphoreTakeFromISR(param_access, NULL);
   if (active_pattern < 5) {
     delta_shadow += config.waves[active_pattern].speed;
@@ -410,5 +444,8 @@ void IRAM_ATTR calcHandler() {
 
   // line_pos_shadow += config.eff_line_speed;
   runtime_data.line_pos += 1;
+
+  sline_pos_shadow += config.eff_sline_speed;
+  runtime_data.sline_pos = sline_pos_shadow >> 8;
   xSemaphoreGive(param_access);
 }
