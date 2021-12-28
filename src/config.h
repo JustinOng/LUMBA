@@ -21,6 +21,6 @@ constexpr uint8_t PIN_SCL = 17;
 constexpr uint8_t NUM_LOX = 4;
 const uint8_t LOX_ADDRESS[NUM_LOX] = {0x30, 0x31, 0x32, 0x33};
 // rst pins for VL53L0X
-const uint8_t LOX_SHT[NUM_LOX] = {18, 19, 21, 5};
+const uint8_t LOX_SHT[NUM_LOX] = {5, 18, 21, 19};
 
 #endif
