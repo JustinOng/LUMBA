@@ -12,6 +12,7 @@ typedef struct {
   char pattern_num;
 
   uint8_t brightness;
+  uint32_t base_color;
   uint32_t sec_color;
   uint16_t move_speed;
 

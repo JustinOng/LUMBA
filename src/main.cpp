@@ -62,6 +62,7 @@ AsyncWebConfig conf;
 
 dyn_config_t config;
 
+CRGB leds_base[NUM_BASE_LEDS];
 // represents actual data written to the LED
 CRGB leds[NUM_LEDS];
 // used for certain effects
@@ -96,6 +97,8 @@ void readParams() {
     sprintf(buf, "wave%d_duty", i);
     config.waves[i].duty = conf.getInt(buf);
   }
+
+  config.base_color = strtol(conf.getString("base_color").c_str() + 1, NULL, 16);
 
   config.mode = conf.getValue("mode")[0];
   config.pattern_num = conf.getValue("pattern_num")[0];
@@ -193,7 +196,8 @@ void setup() {
   server.begin();
   readParams();
 
-  FastLED.addLeds<LED_TYPE, PIN_LED_J7, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE, PIN_LED_J7, COLOR_ORDER>(leds_base, NUM_BASE_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE, PIN_LED_J8, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
   initSensors();
 
@@ -220,6 +224,8 @@ void loop() {
   static uint32_t line_start_time = -1;
   static uint32_t sline_start_time = -1;
   static uint8_t pPattern = -1;
+
+  fill_solid(leds_base, NUM_BASE_LEDS, config.base_color);
 
   runtime_data_t data;
   xSemaphoreTake(param_access, portMAX_DELAY);

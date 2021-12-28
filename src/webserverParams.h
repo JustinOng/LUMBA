@@ -99,6 +99,14 @@ String params =
     "'default':'255'"
     "},"
     "{"
+    "'name':'base_color',"
+    "'label':'Base Color',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#ffffff'"
+    "},"
+    "{"
     "'name':'wave_color',"
     "'label':'Wave Color',"
     "'type':" +
