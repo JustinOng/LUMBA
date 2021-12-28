@@ -293,10 +293,17 @@ void loop() {
     case 2:
     case 3:
     case 4: {
-      for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-        Serial.print("Drawing segment ");
-        Serial.println(i);
-        drawWaves(buf, config.waves[active_pattern], data.delta, segments[i]);
+      static uint8_t last_run_delta = 0;
+
+      // because computation runs at a fixed frame rate while the drawing rate is dependent
+      // on the number of LEDs, we play potential catch up here if delta has been incremented
+      // more than one time
+      while (data.delta != last_run_delta) {
+        for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
+          drawWaves(buf, config.waves[active_pattern], data.delta, segments[i]);
+        }
+
+        last_run_delta++;
       }
 
       if (config.effect_num == '0') {
