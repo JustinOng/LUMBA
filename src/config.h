@@ -5,7 +5,7 @@
 
 #define DATA_PIN 25
 #define LED_TYPE WS2812B
-#define COLOR_ORDER GRB
+#define COLOR_ORDER RGB
 
 #define FPS 60
 #define CALC_FPS 60
