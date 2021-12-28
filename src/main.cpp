@@ -8,16 +8,11 @@
 #include "drawFireworks.h"
 #include "drawWaves.h"
 #include "dynConfig.h"
+#include "helpers.h"
 #include "sensors.h"
 #include "webserverParams.h"
 
 FASTLED_USING_NAMESPACE
-
-typedef struct {
-  uint16_t start;
-  uint16_t end;
-  bool invert;
-} segment_t;
 
 segment_t segments[] = {
     {.start = 359,
@@ -299,7 +294,9 @@ void loop() {
     case 3:
     case 4: {
       for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-        drawWaves(buf, config.waves[active_pattern], segments[i].start, segments[i].end, data.delta, segments[i].invert);
+        Serial.print("Drawing segment ");
+        Serial.println(i);
+        drawWaves(buf, config.waves[active_pattern], data.delta, segments[i]);
       }
 
       if (config.effect_num == '0') {
