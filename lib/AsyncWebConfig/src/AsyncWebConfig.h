@@ -29,7 +29,7 @@ Dependencies:
 #endif
 */
 //maximum number of parameters
-#define MAXVALUES 64
+#define MAXVALUES 128
 
 //maximum number of options per parameters
 #define MAXOPTIONS 15

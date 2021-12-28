@@ -25,6 +25,12 @@ segment_t segments[] = {
      .invert = true},
     {.start = 360,
      .end = 720,
+     .invert = true},
+    {.start = 850,
+     .end = 721,
+     .invert = true},
+    {.start = 851,
+     .end = NUM_LEDS,
      .invert = true}};
 
 // this defines the segments that the star ladder effect will be drawn on
@@ -129,9 +135,12 @@ void readParams() {
   config.fade_duration = conf.getInt("fade_duration");
   config.fade_blend = conf.getInt("fade_blend");
 
-  config.param1 = conf.getInt("param1");
-  config.param2 = conf.getInt("param2");
-  config.param3 = conf.getInt("param3");
+  segments[0].start = conf.getInt("led_mid");
+  segments[1].start = conf.getInt("led_mid") + 1;
+  segments[1].end = conf.getInt("led_arc_corner");
+  segments[2].start = conf.getInt("led_arc_mid");
+  segments[2].end = conf.getInt("led_arc_corner") + 1;
+  segments[3].start = conf.getInt("led_arc_mid") + 1;
 }
 
 void handleRoot(AsyncWebServerRequest* request) {

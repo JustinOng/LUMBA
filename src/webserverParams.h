@@ -468,6 +468,33 @@ String params =
     ","
     "'min':1,'max':65535,"
     "'default':'255'"
+    "},"
+    "{"
+    "'name':'led_mid',"
+    "'label':'LED: Index of mid split',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'360'"
+    "},"
+    "{"
+    "'name':'led_arc_corner',"
+    "'label':'LED: Index of arc begin',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'720'"
+    "},"
+    "{"
+    "'name':'led_arc_mid',"
+    "'label':'LED: Index of arc split',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'850'"
     "}"
     "]";
 

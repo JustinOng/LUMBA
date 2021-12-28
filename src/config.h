@@ -1,7 +1,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define NUM_LEDS (720 + 70)
+#define NUM_LEDS (720 + 300)
+
+#define NUM_BASE_LEDS 460
 
 #define DATA_PIN 25
 #define LED_TYPE WS2812B
