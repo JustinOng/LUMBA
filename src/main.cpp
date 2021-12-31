@@ -164,6 +164,7 @@ runtime_data_t runtime_data;
 
 SemaphoreHandle_t param_access;
 
+uint16_t lox_readings[NUM_LOX] = {0};
 void setup() {
   Serial.begin(115200);
 
@@ -196,6 +197,13 @@ void setup() {
   }
 
   server.on("/", handleRoot);
+  server.on("/sensors", HTTP_GET, [](AsyncWebServerRequest* request) {
+    constexpr uint8_t LEN_BUF = 128;
+    char buf[LEN_BUF];
+    snprintf(buf, LEN_BUF, "Sensor 0: %d<br/>Sensor 1: %d<br/>Sensor 2: %d<br/>Sensor 3: %d<br/>", lox_readings[0], lox_readings[1], lox_readings[2], lox_readings[3]);
+    request->send(200, "text/html", buf);
+  });
+
   AsyncElegantOTA.begin(&server);
   server.begin();
   readParams();
@@ -253,6 +261,13 @@ void loop() {
         runtime_data.sline_pos = 0;
       }
       Serial.println("Triggered");
+    }
+  }
+
+  static uint32_t last_sensor_debug_read = 0;
+  if (millis() - last_sensor_debug_read > 500) {
+    for (uint8_t i = 0; i < NUM_LOX; i++) {
+      lox_readings[i] = readSensor(i);
     }
   }
 

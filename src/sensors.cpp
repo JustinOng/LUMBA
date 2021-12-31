@@ -48,7 +48,9 @@ bool sensorActivated(uint8_t i) {
 
   bool activated = false;
 
-  bool withinRange = lox[i].readRangeContinuousMillimeters() < config.threshold;
+  uint16_t reading = lox[i].readRangeContinuousMillimeters();
+
+  bool withinRange = reading < config.threshold;
 
   if (withinRange && !pWithinRange[i]) {
     if ((millis() - last_activate[i]) > config.activate_debounce) {
@@ -61,4 +63,19 @@ bool sensorActivated(uint8_t i) {
   pWithinRange[i] = withinRange;
 
   return activated;
+}
+
+void logSensors() {
+  Serial.print("LOX: ");
+  for (uint8_t i = 0; i < NUM_LOX; i++) {
+    Serial.print(i);
+    Serial.print(": ");
+    Serial.print(lox[i].readRangeContinuousMillimeters());
+    Serial.print(" ");
+  }
+  Serial.println();
+}
+
+uint16_t readSensor(uint8_t i) {
+  return lox[i].readRangeContinuousMillimeters();
 }

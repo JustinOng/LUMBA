@@ -17,8 +17,8 @@ constexpr uint8_t PIN_LED_J8 = 26;
 constexpr uint8_t PIN_LED_J9 = 33;
 constexpr uint8_t PIN_LED_J10 = 32;
 
-constexpr uint8_t PIN_SDA = 16;
-constexpr uint8_t PIN_SCL = 17;
+constexpr uint8_t PIN_SDA = 17;
+constexpr uint8_t PIN_SCL = 16;
 
 constexpr uint8_t NUM_LOX = 4;
 const uint8_t LOX_ADDRESS[NUM_LOX] = {0x30, 0x31, 0x32, 0x33};
