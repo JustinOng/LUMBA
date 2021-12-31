@@ -201,7 +201,7 @@ void setup() {
   readParams();
 
   FastLED.addLeds<LED_TYPE, PIN_LED_J7, COLOR_ORDER>(leds_base, NUM_BASE_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.addLeds<LED_TYPE, PIN_LED_J8, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE, PIN_LED_J10, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
   initSensors();
 
@@ -222,12 +222,11 @@ constexpr uint8_t MAX_PATTERN = 5;
 
 void loop() {
   // index at which to next draw stars
-  static int16_t star_ladder_indexes[NUM_SEGMENTS_STAR_LADDER] = {0};
+  static int16_t star_ladder_indexes[NUM_SEGMENTS_STAR_LADDER] = {-1};
   // how long more to draw random stars
   static uint32_t random_stars_start_time = -1;
   static uint32_t line_start_time = -1;
   static uint32_t sline_start_time = -1;
-  static uint8_t pPattern = -1;
 
   fill_solid(leds_base, NUM_BASE_LEDS, config.base_color);
 
@@ -267,20 +266,28 @@ void loop() {
   } else {
     // auto
     if ((millis() - last_pattern_change) > (config.auto_interval * 1000)) {
-      last_pattern_change = millis();
-      active_pattern++;
+      static uint8_t last_delta = 0;
 
-      if (active_pattern > MAX_PATTERN) {
-        active_pattern = 0;
+      // if we are transitioning between waves, change only at the end of the period
+      // so that we don't have an abrupt transition
+      if (active_pattern == 4 || data.delta < last_delta) {
+        last_pattern_change = millis();
+        active_pattern++;
+
+        if (active_pattern > MAX_PATTERN) {
+          active_pattern = 0;
+        }
+
+        Serial.print("Change to pattern ");
+        Serial.println(active_pattern);
       }
 
-      Serial.print("Change to pattern ");
-      Serial.println(active_pattern);
+      last_delta = data.delta;
     }
   }
 
   CRGB* buf;
-  bool fade = ((millis() - last_pattern_change) < config.fade_duration) && (pPattern == 4 || pPattern == 5);
+  bool fade = ((millis() - last_pattern_change) < config.fade_duration) && (active_pattern == 5 || active_pattern == 0);
   if (fade) {
     buf = leds_buf;
   } else {
@@ -444,7 +451,6 @@ void loop() {
 
   FastLED.show();
   FastLED.delay(1000 / FPS);
-  pPattern = active_pattern;
 }
 
 void IRAM_ATTR calcHandler() {
