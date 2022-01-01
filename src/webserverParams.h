@@ -347,6 +347,15 @@ String params =
     "'default':'100'"
     "},"
     "{"
+    "'name':'eff_sl_fade',"
+    "'label':'Star Ladder: Fade',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'30'"
+    "},"
+    "{"
     "'name':'eff_rs_color',"
     "'label':'Random Stars: Color',"
     "'type':" +

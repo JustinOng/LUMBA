@@ -27,6 +27,7 @@ typedef struct {
   uint8_t eff_sl_step;
   uint8_t eff_sl_length;
   uint16_t eff_sl_interval;
+  uint8_t eff_sl_fade;
 
   uint32_t eff_rs_color;
   uint16_t eff_rs_duration;

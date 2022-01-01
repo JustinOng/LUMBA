@@ -111,6 +111,7 @@ void readParams() {
   config.eff_sl_step = conf.getInt("eff_sl_step");
   config.eff_sl_length = conf.getInt("eff_sl_length");
   config.eff_sl_interval = conf.getInt("eff_sl_interval");
+  config.eff_sl_fade = conf.getInt("eff_sl_fade");
 
   config.eff_rs_color = strtol(conf.getString("eff_rs_color").c_str() + 1, NULL, 16);
   config.eff_rs_duration = conf.getInt("eff_rs_duration");
@@ -396,7 +397,7 @@ void loop() {
           }
         }
 
-        fadeToBlackBy(leds_effect[0], NUM_LEDS, 32);
+        fadeToBlackBy(leds_effect[0], NUM_LEDS, config.eff_sl_fade);
       } else if (config.effect_num == '1') {
         if (millis() - random_stars_start_time < config.eff_rs_duration) {
           uint16_t i = 0;
