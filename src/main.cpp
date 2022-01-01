@@ -63,11 +63,13 @@ AsyncWebConfig conf;
 
 dyn_config_t config;
 
+constexpr uint8_t NUM_EFFECTS = 4;
+
 CRGB leds_base[NUM_BASE_LEDS];
 // represents actual data written to the LED
 CRGB leds[NUM_LEDS];
-// used for certain effects
-CRGB overlay_leds[NUM_LEDS];
+// used to track effects ruinning
+CRGB leds_effect[NUM_EFFECTS][NUM_LEDS];
 // buffer for fading
 CRGB leds_buf[NUM_LEDS];
 
@@ -357,7 +359,7 @@ void loop() {
 
               for (int16_t u = star_ladder_indexes[i]; u < (star_ladder_indexes[i] + config.eff_sl_length); u++) {
                 if (u <= (segments_star_ladder[i].end)) {
-                  overlay_leds[u] = star_color;
+                  leds_effect[0][u] = star_color;
                 }
               }
               star_ladder_indexes[i] += config.eff_sl_step;
@@ -367,7 +369,7 @@ void loop() {
               }
               for (int16_t u = star_ladder_indexes[i]; u > (star_ladder_indexes[i] - config.eff_sl_length); u--) {
                 if (u >= (segments_star_ladder[i].end)) {
-                  overlay_leds[u] = star_color;
+                  leds_effect[0][u] = star_color;
                 }
               }
               star_ladder_indexes[i] -= config.eff_sl_step;
@@ -375,14 +377,14 @@ void loop() {
           }
         }
 
-        fadeToBlackBy(overlay_leds, NUM_LEDS, 32);
+        fadeToBlackBy(leds_effect[0], NUM_LEDS, 32);
       } else if (config.effect_num == '1') {
         if (millis() - random_stars_start_time < config.eff_rs_duration) {
           uint16_t i = 0;
           while (i < NUM_LEDS) {
             if (random8(config.eff_rs_chance) == 0) {
               for (uint16_t u = 0; u < config.eff_rs_length && i < NUM_LEDS; u++) {
-                overlay_leds[i++] = CRGB(config.eff_rs_color);
+                leds_effect[1][i++] = CRGB(config.eff_rs_color);
               }
             } else {
               i++;
@@ -390,7 +392,7 @@ void loop() {
           }
         }
 
-        fadeToBlackBy(overlay_leds, NUM_LEDS, config.eff_rs_fade);
+        fadeToBlackBy(leds_effect[1], NUM_LEDS, config.eff_rs_fade);
       } else if (config.effect_num == '2') {
         bool effectActive = (millis() - line_start_time) < (config.eff_line_duration + config.eff_line_fade_dur);
 
@@ -402,18 +404,18 @@ void loop() {
             if (segment.start < segment.end) {
               for (int16_t u = segment.start; u < segment.end && (c < 2 * data.line_pos); u++) {
                 if (c % config.eff_line_period < config.eff_line_duty) {
-                  overlay_leds[u] = CRGB(config.eff_line_color);
+                  leds_effect[2][u] = CRGB(config.eff_line_color);
                 } else {
-                  overlay_leds[u] = CRGB::Black;
+                  leds_effect[2][u] = CRGB::Black;
                 }
                 c++;
               }
             } else {
               for (int16_t u = segment.start; u > segment.end && (c < 2 * data.line_pos); u--) {
                 if (c % config.eff_line_period < config.eff_line_duty) {
-                  overlay_leds[u] = CRGB(config.eff_line_color);
+                  leds_effect[2][u] = CRGB(config.eff_line_color);
                 } else {
-                  overlay_leds[u] = CRGB::Black;
+                  leds_effect[2][u] = CRGB::Black;
                 }
                 c++;
               }
@@ -422,7 +424,7 @@ void loop() {
 
           int32_t fade_time = millis() - line_start_time - config.eff_line_duration;
           if (fade_time >= 0) {
-            fadeLightBy(overlay_leds, NUM_LEDS, map(fade_time, 0, config.eff_line_fade_dur, 0, 255));
+            fadeLightBy(leds_effect[2], NUM_LEDS, map(fade_time, 0, config.eff_line_fade_dur, 0, 255));
           }
         }
       } else if (config.effect_num == '3') {
@@ -433,17 +435,19 @@ void loop() {
             CRGB line_color = CRGB(config.eff_sline_color);
             if (segment.start < segment.end) {
               for (uint16_t pos = segment.start; pos < segment.end && pos < (segment.start + data.sline_pos); pos++) {
-                overlay_leds[pos] = line_color;
+                leds_effect[3][pos] = line_color;
               }
             }
           }
         } else {
-          fill_solid(overlay_leds, NUM_LEDS, CRGB::Black);
+          fill_solid(leds_effect[3], NUM_LEDS, CRGB::Black);
         }
       }
 
       for (uint16_t i = 0; i < NUM_LEDS; i++) {
-        buf[i] += overlay_leds[i];
+        for (uint8_t u = 0; u < NUM_EFFECTS; u++) {
+          buf[i] += leds_effect[u][i];
+        }
       }
       break;
     }
