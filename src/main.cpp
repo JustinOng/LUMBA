@@ -136,6 +136,18 @@ void readParams() {
   segments[2].start = conf.getInt("led_arc_mid");
   segments[2].end = conf.getInt("led_arc_corner") + 1;
   segments[3].start = conf.getInt("led_arc_mid") + 1;
+
+  segments_star_ladder[0].start = segments[0].start;
+  segments_star_ladder[1].start = segments[1].start;
+  segments_star_ladder[1].end = segments[1].end;
+
+  segments_line[0].start = segments[0].start;
+  segments_line[1].start = segments[1].start;
+  segments_line[1].end = segments[1].end;
+
+  segments_sline[0].start = segments[0].start;
+  segments_sline[1].start = segments[1].start;
+  segments_sline[1].end = segments[1].end;
 }
 
 void handleRoot(AsyncWebServerRequest* request) {
