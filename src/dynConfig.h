@@ -48,6 +48,8 @@ typedef struct {
   uint16_t param1;
   uint16_t param2;
   uint16_t param3;
+
+  uint8_t patt_triggers[4];
 } dyn_config_t;
 
 extern dyn_config_t config;

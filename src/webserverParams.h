@@ -495,6 +495,58 @@ String params =
     ","
     "'min':1,'max':65535,"
     "'default':'850'"
+    "},"
+    "{"
+    "'name':'patt_trig_0',"
+    "'label':'Trigger: Star Ladder',"
+    "'type':" +
+    String(INPUTSELECT) +
+    ","
+    "'options':["
+    "{'v':'0','l':'0'},"
+    "{'v':'1','l':'1'},"
+    "{'v':'2','l':'2'},"
+    "{'v':'3','l':'3'}]"
+    "'default':'0'"
+    "},"
+    "{"
+    "'name':'patt_trig_1',"
+    "'label':'Trigger: Random Stars',"
+    "'type':" +
+    String(INPUTSELECT) +
+    ","
+    "'options':["
+    "{'v':'0','l':'0'},"
+    "{'v':'1','l':'1'},"
+    "{'v':'2','l':'2'},"
+    "{'v':'3','l':'3'}]"
+    "'default':'0'"
+    "}"
+    "{"
+    "'name':'patt_trig_2',"
+    "'label':'Trigger: Lines',"
+    "'type':" +
+    String(INPUTSELECT) +
+    ","
+    "'options':["
+    "{'v':'0','l':'0'},"
+    "{'v':'1','l':'1'},"
+    "{'v':'2','l':'2'},"
+    "{'v':'3','l':'3'}]"
+    "'default':'0'"
+    "},"
+    "{"
+    "'name':'patt_trig_3',"
+    "'label':'Trigger: Solid Lines',"
+    "'type':" +
+    String(INPUTSELECT) +
+    ","
+    "'options':["
+    "{'v':'0','l':'0'},"
+    "{'v':'1','l':'1'},"
+    "{'v':'2','l':'2'},"
+    "{'v':'3','l':'3'}]"
+    "'default':'0'"
     "}"
     "]";
 

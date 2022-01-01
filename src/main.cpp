@@ -132,6 +132,11 @@ void readParams() {
   config.fade_duration = conf.getInt("fade_duration");
   config.fade_blend = conf.getInt("fade_blend");
 
+  config.patt_triggers[0] = conf.getValue("patt_trig_0")[0];
+  config.patt_triggers[1] = conf.getValue("patt_trig_1")[0];
+  config.patt_triggers[2] = conf.getValue("patt_trig_2")[0];
+  config.patt_triggers[3] = conf.getValue("patt_trig_3")[0];
+
   segments[0].start = conf.getInt("led_mid");
   segments[1].start = conf.getInt("led_mid") + 1;
   segments[1].end = conf.getInt("led_arc_corner");
@@ -260,7 +265,7 @@ void loop() {
   static uint32_t last_sensor_read = 0;
   if (millis() - last_sensor_read > 100) {
     last_sensor_read = millis();
-    if (sensorActivated(0)) {
+    if (sensorActivated(config.patt_triggers[0])) {
       if (config.effect_num == '0') {
         for (uint8_t i = 0; i < NUM_SEGMENTS_STAR_LADDER; i++) {
           star_ladder_indexes[i] = segments_star_ladder[i].start;
@@ -275,6 +280,20 @@ void loop() {
         runtime_data.sline_pos = 0;
       }
       Serial.println("Triggered");
+    }
+
+    if (sensorActivated(config.patt_triggers[1])) {
+      random_stars_start_time = millis();
+    }
+
+    if (sensorActivated(config.patt_triggers[2])) {
+      line_start_time = millis();
+      runtime_data.line_pos = 0;
+    }
+
+    if (sensorActivated(config.patt_triggers[3])) {
+      sline_start_time = millis();
+      runtime_data.sline_pos = 0;
     }
   }
 
