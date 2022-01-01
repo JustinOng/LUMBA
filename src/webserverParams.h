@@ -539,7 +539,7 @@ String params =
     "{'v':'2','l':'2'},"
     "{'v':'3','l':'3'}],"
     "'default':'0'"
-    "}"
+    "},"
     "{"
     "'name':'patt_trig_2',"
     "'label':'Trigger: Lines',"
