@@ -45,6 +45,7 @@ typedef struct {
   uint32_t eff_sline_color;
   uint16_t eff_sline_duration;
   uint16_t eff_sline_speed;
+  uint8_t eff_sline_fade;
 
   uint16_t param1;
   uint16_t param2;

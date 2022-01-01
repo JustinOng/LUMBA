@@ -128,6 +128,7 @@ void readParams() {
 
   config.eff_sline_color = strtol(conf.getString("eff_sline_color").c_str() + 1, NULL, 16);
   config.eff_sline_speed = conf.getInt("eff_sline_speed");
+  config.eff_sline_fade = conf.getInt("eff_sline_fade");
 
   config.auto_interval = conf.getInt("auto_interval");
   config.fade_duration = conf.getInt("fade_duration");
@@ -370,30 +371,20 @@ void loop() {
           last_change = millis();
 
           for (uint8_t i = 0; i < NUM_SEGMENTS_STAR_LADDER; i++) {
-            // Yes, this is terrible, sorry. I probably should refactor and abstract out
-            // the handling of ascending and descending ranges cleanly.
-            if (segments_star_ladder[i].start < segments_star_ladder[i].end) {
-              if (star_ladder_indexes[i] > segments_star_ladder[i].end) {
-                continue;
-              }
+            segment_t& segment = segments_star_ladder[i];
 
-              for (int16_t u = star_ladder_indexes[i]; u < (star_ladder_indexes[i] + config.eff_sl_length); u++) {
-                if (u <= (segments_star_ladder[i].end)) {
-                  leds_effect[0][u] = star_color;
-                }
-              }
-              star_ladder_indexes[i] += config.eff_sl_step;
-            } else {
-              if (star_ladder_indexes[i] < segments_star_ladder[i].end) {
-                continue;
-              }
-              for (int16_t u = star_ladder_indexes[i]; u > (star_ladder_indexes[i] - config.eff_sl_length); u--) {
-                if (u >= (segments_star_ladder[i].end)) {
-                  leds_effect[0][u] = star_color;
-                }
-              }
-              star_ladder_indexes[i] -= config.eff_sl_step;
+            if (!withinSegment(star_ladder_indexes[i], segment)) {
+              continue;
             }
+
+            for (uint8_t u = 0; u < config.eff_sl_length; u++) {
+              uint8_t index = star_ladder_indexes[i] + u;
+              if (!withinSegment(index, segment)) {
+                break;
+              }
+              leds_effect[0][getPixelIndex(index, segment)] = star_color;
+            }
+            star_ladder_indexes[i] += config.eff_sl_step;
           }
         }
 
@@ -421,24 +412,16 @@ void loop() {
             segment_t& segment = segments_line[i];
 
             uint16_t c = runtime_data.line_pos;
-            if (segment.start < segment.end) {
-              for (int16_t u = segment.start; u < segment.end && (c < 2 * data.line_pos); u++) {
-                if (c % config.eff_line_period < config.eff_line_duty) {
-                  leds_effect[2][u] = CRGB(config.eff_line_color);
-                } else {
-                  leds_effect[2][u] = CRGB::Black;
-                }
-                c++;
+
+            uint16_t segment_length = getSegmentLength(segment);
+
+            for (uint16_t u = 0; u < segment_length; u++) {
+              if (c % config.eff_line_period < config.eff_line_duty) {
+                leds_effect[2][getPixelIndex(u, segment)] = CRGB(config.eff_line_color);
+              } else {
+                leds_effect[2][getPixelIndex(u, segment)] = CRGB::Black;
               }
-            } else {
-              for (int16_t u = segment.start; u > segment.end && (c < 2 * data.line_pos); u--) {
-                if (c % config.eff_line_period < config.eff_line_duty) {
-                  leds_effect[2][u] = CRGB(config.eff_line_color);
-                } else {
-                  leds_effect[2][u] = CRGB::Black;
-                }
-                c++;
-              }
+              c++;
             }
           }
 
@@ -453,14 +436,14 @@ void loop() {
             segment_t& segment = segments_line[i];
 
             CRGB line_color = CRGB(config.eff_sline_color);
-            if (segment.start < segment.end) {
-              for (uint16_t pos = segment.start; pos < segment.end && pos < (segment.start + data.sline_pos); pos++) {
-                leds_effect[3][pos] = line_color;
-              }
+            uint16_t segment_length = getSegmentLength(segment);
+
+            for (uint16_t u = 0; u < segment_length && u < data.sline_pos; u++) {
+              leds_effect[3][getPixelIndex(u, segment)] = line_color;
             }
           }
         } else {
-          fill_solid(leds_effect[3], NUM_LEDS, CRGB::Black);
+          fadeLightBy(leds_effect[3], NUM_LEDS, config.eff_sline_fade);
         }
       }
 

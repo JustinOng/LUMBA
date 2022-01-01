@@ -478,6 +478,16 @@ String params =
     "'min':1,'max':65535,"
     "'default':'255'"
     "},"
+    "},"
+    "{"
+    "'name':'eff_sline_fade',"
+    "'label':'Solid Line: Fade',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'32'"
+    "},"
     "{"
     "'name':'led_mid',"
     "'label':'LED: Index of mid split',"
