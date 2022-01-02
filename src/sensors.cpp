@@ -42,7 +42,7 @@ void initSensors() {
   config.activate_debounce = 500;
 }
 
-bool sensorActivated(uint8_t i) {
+bool sensorActivated(uint8_t i, uint16_t min, uint16_t max) {
   static bool pWithinRange[NUM_LOX] = {false};
   static uint32_t last_activate[NUM_LOX] = {0};
 
@@ -50,7 +50,7 @@ bool sensorActivated(uint8_t i) {
 
   uint16_t reading = lox[i].readRangeContinuousMillimeters();
 
-  bool withinRange = reading < config.threshold;
+  bool withinRange = reading > min && reading < max;
 
   if (withinRange && !pWithinRange[i]) {
     if ((millis() - last_activate[i]) > config.activate_debounce) {

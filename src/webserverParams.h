@@ -515,6 +515,24 @@ String params =
     "'default':'850'"
     "},"
     "{"
+    "'name':'lox_min',"
+    "'label':'Sensor: Min Distance (mm)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'150'"
+    "},"
+    "{"
+    "'name':'lox_max',"
+    "'label':'Sensor: Max Distance (mm)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'1000'"
+    "},"
+    "{"
     "'name':'patt_trig_0',"
     "'label':'Trigger: Star Ladder',"
     "'type':" +

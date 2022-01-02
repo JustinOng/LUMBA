@@ -157,6 +157,9 @@ void readParams() {
   segments_sline[0].start = segments[0].start;
   segments_sline[1].start = segments[1].start;
   segments_sline[1].end = segments[1].end;
+
+  config.lox_min = conf.getInt("lox_min");
+  config.lox_max = conf.getInt("lox_max");
 }
 
 void handleRoot(AsyncWebServerRequest* request) {
@@ -267,7 +270,7 @@ void loop() {
   static uint32_t last_sensor_read = 0;
   if (millis() - last_sensor_read > 100) {
     last_sensor_read = millis();
-    if (sensorActivated(config.patt_triggers[0])) {
+    if (sensorActivated(config.patt_triggers[0], config.lox_min, config.lox_max)) {
       if (config.effect_num == '0') {
         for (uint8_t i = 0; i < NUM_SEGMENTS_STAR_LADDER; i++) {
           star_ladder_indexes[i] = segments_star_ladder[i].start;
@@ -284,16 +287,16 @@ void loop() {
       Serial.println("Triggered");
     }
 
-    if (sensorActivated(config.patt_triggers[1])) {
+    if (sensorActivated(config.patt_triggers[1], config.lox_min, config.lox_max)) {
       random_stars_start_time = millis();
     }
 
-    if (sensorActivated(config.patt_triggers[2])) {
+    if (sensorActivated(config.patt_triggers[2], config.lox_min, config.lox_max)) {
       line_start_time = millis();
       runtime_data.line_pos = 0;
     }
 
-    if (sensorActivated(config.patt_triggers[3])) {
+    if (sensorActivated(config.patt_triggers[3], config.lox_min, config.lox_max)) {
       sline_start_time = millis();
       runtime_data.sline_pos = 0;
     }
