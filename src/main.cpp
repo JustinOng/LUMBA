@@ -134,10 +134,10 @@ void readParams() {
   config.fade_duration = conf.getInt("fade_duration");
   config.fade_blend = conf.getInt("fade_blend");
 
-  config.patt_triggers[0] = conf.getValue("patt_trig_0")[0];
-  config.patt_triggers[1] = conf.getValue("patt_trig_1")[0];
-  config.patt_triggers[2] = conf.getValue("patt_trig_2")[0];
-  config.patt_triggers[3] = conf.getValue("patt_trig_3")[0];
+  config.patt_triggers[0] = conf.getValue("patt_trig_0")[0] - '0';
+  config.patt_triggers[1] = conf.getValue("patt_trig_1")[0] - '0';
+  config.patt_triggers[2] = conf.getValue("patt_trig_2")[0] - '0';
+  config.patt_triggers[3] = conf.getValue("patt_trig_3")[0] - '0';
 
   segments[0].start = conf.getInt("led_mid");
   segments[1].start = conf.getInt("led_mid") + 1;
