@@ -184,9 +184,9 @@ void AsyncWebConfig::addDescription(String parameter){
   _apName.replace(":","");
 
   _apName = "Sail " + _apName;
-  if (!SPIFFS.begin()) {
+  if (!SPIFFS.begin(true)) {
     SPIFFS.format();
-    SPIFFS.begin();
+    SPIFFS.begin(true);
   }
 };
 
