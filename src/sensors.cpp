@@ -48,7 +48,7 @@ bool sensorActivated(uint8_t i, uint16_t min, uint16_t max) {
 
   bool activated = false;
 
-  uint16_t reading = lox[i].readRangeContinuousMillimeters();
+  uint16_t reading = readSensor(i);
 
   bool withinRange = reading > min && reading < max;
 
@@ -77,5 +77,10 @@ void logSensors() {
 }
 
 uint16_t readSensor(uint8_t i) {
-  return lox[i].readRangeContinuousMillimeters();
+  static uint16_t val = 0;
+  constexpr float alpha = 0.5;
+
+  uint16_t new_val = lox[i].readRangeContinuousMillimeters();
+  val = val * (1 - alpha) + new_val * alpha;
+  return val;
 }
