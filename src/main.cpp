@@ -1,8 +1,11 @@
 #include <Arduino.h>
 #include <AsyncElegantOTA.h>
+#include <AsyncTCP.h>
 #include <AsyncWebConfig.h>
 #include <ESPAsyncWebServer.h>
 #include <FastLED.h>
+#include <WebSerial.h>
+#include <WiFi.h>
 
 #include "config.h"
 #include "drawFireworks.h"
@@ -229,6 +232,7 @@ void setup() {
   });
 
   AsyncElegantOTA.begin(&server);
+  WebSerial.begin(&server);
   server.begin();
   readParams();
 
@@ -244,6 +248,8 @@ void setup() {
   timerAttachInterrupt(timer, &calcHandler, true);
   timerAlarmWrite(timer, 1000000 / CALC_FPS, true);
   timerAlarmEnable(timer);
+
+  WebSerial.println("Hello");
 }
 
 // auto mode: controls which wave state/fireworks is being displayed
@@ -284,21 +290,25 @@ void loop() {
         sline_start_time = millis();
         runtime_data.sline_pos = 0;
       }
-      Serial.println("Triggered");
+      Serial.println("Triggered sensor slot 0");
+      WebSerial.println("Triggered sensor slot 0");
     }
 
     if (sensorActivated(config.patt_triggers[1], config.lox_min, config.lox_max)) {
       random_stars_start_time = millis();
+      WebSerial.println("Triggered sensor slot 1");
     }
 
     if (sensorActivated(config.patt_triggers[2], config.lox_min, config.lox_max)) {
       line_start_time = millis();
       runtime_data.line_pos = 0;
+      WebSerial.println("Triggered sensor slot 2");
     }
 
     if (sensorActivated(config.patt_triggers[3], config.lox_min, config.lox_max)) {
       sline_start_time = millis();
       runtime_data.sline_pos = 0;
+      WebSerial.println("Triggered sensor slot 3");
     }
   }
 
