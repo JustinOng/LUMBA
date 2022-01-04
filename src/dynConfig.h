@@ -53,8 +53,8 @@ typedef struct {
 
   uint8_t patt_triggers[4];
 
-  uint16_t lox_min;
-  uint16_t lox_max;
+  uint16_t lox_min[4];
+  uint16_t lox_max[4];
 } dyn_config_t;
 
 extern dyn_config_t config;

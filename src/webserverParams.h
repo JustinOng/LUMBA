@@ -515,8 +515,8 @@ String params =
     "'default':'850'"
     "},"
     "{"
-    "'name':'lox_min',"
-    "'label':'Sensor: Min Distance (mm)',"
+    "'name':'lox_min_0',"
+    "'label':'Sensor Slot 0: Min Distance (mm)',"
     "'type':" +
     String(INPUTNUMBER) +
     ","
@@ -524,8 +524,62 @@ String params =
     "'default':'150'"
     "},"
     "{"
-    "'name':'lox_max',"
-    "'label':'Sensor: Max Distance (mm)',"
+    "'name':'lox_max_0',"
+    "'label':'Sensor Slot 0: Max Distance (mm)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'1000'"
+    "},"
+    "{"
+    "'name':'lox_min_1',"
+    "'label':'Sensor Slot 1: Min Distance (mm)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'150'"
+    "},"
+    "{"
+    "'name':'lox_max_1',"
+    "'label':'Sensor Slot 1: Max Distance (mm)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'1000'"
+    "},"
+    "{"
+    "'name':'lox_min_2',"
+    "'label':'Sensor Slot 2: Min Distance (mm)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'150'"
+    "},"
+    "{"
+    "'name':'lox_max_2',"
+    "'label':'Sensor Slot 2: Max Distance (mm)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'1000'"
+    "},"
+    "{"
+    "'name':'lox_min_3',"
+    "'label':'Sensor Slot 3: Min Distance (mm)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'150'"
+    "},"
+    "{"
+    "'name':'lox_max_3',"
+    "'label':'Sensor Slot 3: Max Distance (mm)',"
     "'type':" +
     String(INPUTNUMBER) +
     ","
