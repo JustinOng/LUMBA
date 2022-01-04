@@ -473,7 +473,7 @@ void loop() {
       }
       break;
     }
-    case 5:
+    case 5: {
       CRGBPalette16 fw_palette;
 
 #define MAP_PALETTE(start, end, color_index)       \
@@ -489,6 +489,10 @@ void loop() {
       for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
         drawFireworks(buf, fw_palette, segments[i].start, segments[i].end, data.delta, !segments[i].invert);
       }
+      break;
+    }
+    case 9:
+      fill_solid(leds, NUM_LEDS, config.sec_color);
       break;
   }
 
