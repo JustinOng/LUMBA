@@ -18,6 +18,11 @@ typedef struct {
 
   wave_params_t waves[5];
 
+  uint32_t meteors_color;
+  uint16_t meteors_speed;
+  uint8_t meteors_period;
+  uint8_t meteors_fade;
+
   uint32_t fw_colors[5];
   uint8_t fw_increment;
 

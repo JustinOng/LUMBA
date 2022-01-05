@@ -78,7 +78,9 @@ String params =
     "{'v':'2','l':'Wave 2'},"
     "{'v':'3','l':'Wave 3'},"
     "{'v':'4','l':'Wave 4'},"
-    "{'v':'5','l':'Fireworks'},"
+    "{'v':'5','l':'Meteors'},"
+    "{'v':'6','l':'Star Ladder'},"
+    "{'v':'7','l':'Fireworks'},"
     "{'v':'9','l':'Solid (Sec Color)'}],"
     "'default':'0'"
     "},"
@@ -249,6 +251,41 @@ String params =
     ","
     "'min':-254,'max':127,"
     "'default':'0'"
+    "},"
+    "{"
+    "'name':'meteors_color',"
+    "'label':'Meteors Color',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#ffffff'"
+    "},"
+    "{"
+    "'name':'meteors_speed',"
+    "'label':'Meteors Speed',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'255'"
+    "},"
+    "{"
+    "'name':'meteors_period',"
+    "'label':'Meteors Period',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'10'"
+    "},"
+    "{"
+    "'name':'meteors_fade',"
+    "'label':'Meteors Fade',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'10'"
     "},"
     "{"
     "'name':'fw_color_0',"
