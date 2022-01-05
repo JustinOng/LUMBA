@@ -313,10 +313,10 @@ void loop() {
     }
   }
 
-  static uint32_t last_sensor_debug_read = 0;
-  if (millis() - last_sensor_debug_read > 500) {
-    logSensors();
-  }
+  // static uint32_t last_sensor_debug_read = 0;
+  // if (millis() - last_sensor_debug_read > 500) {
+  //   logSensors();
+  // }
 
   uint32_t start = micros();
   FastLED.setBrightness(config.brightness);
