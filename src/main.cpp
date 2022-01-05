@@ -239,7 +239,7 @@ void loop() {
 
   // static uint32_t last_sensor_debug_read = 0;
   // if (millis() - last_sensor_debug_read > 500) {
-  //   logSensors();
+  //   WebSerial.println(data.caps_palette_index);
   // }
 
   uint32_t start = micros();
@@ -451,9 +451,15 @@ void IRAM_ATTR calcHandler() {
   runtime_data.delta = delta_shadow >> 8;
 
   if ((millis() - eff_caps_start) < config.eff_caps_dur) {
-    caps_shadow = max(caps_shadow + config.eff_caps_slew, 65535);
+    if (caps_shadow - config.eff_caps_slew < 65535) {
+      caps_shadow += config.eff_caps_slew;
+    }
   } else {
-    caps_shadow = min(caps_shadow - config.eff_caps_slew, 0);
+    if (caps_shadow > config.eff_caps_slew) {
+      caps_shadow -= config.eff_caps_slew;
+    } else {
+      caps_shadow = 0;
+    }
   }
   runtime_data.caps_palette_index = caps_shadow >> 8;
 
