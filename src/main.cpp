@@ -31,6 +31,20 @@ segment_t segments[] = {
      .end = NUM_LEDS,
      .invert = true}};
 
+segment_t segments_fw[] = {
+    {.start = 0,
+     .end = 359,
+     .invert = true},
+    {.start = 720,
+     .end = 360,
+     .invert = true},
+    {.start = 721,
+     .end = 850,
+     .invert = true},
+    {.start = NUM_LEDS,
+     .end = 851,
+     .invert = true}};
+
 AsyncWebServer server(80);
 AsyncWebConfig conf;
 
@@ -103,6 +117,11 @@ void readParams() {
   segments[2].start = conf.getInt("led_arc_mid");
   segments[2].end = conf.getInt("led_arc_corner") + 1;
   segments[3].start = conf.getInt("led_arc_mid") + 1;
+
+  for (uint8_t i = 0; i < 4; i++) {
+    segments_fw[i].start = segments[i].end;
+    segments_fw[i].end = segments[i].start;
+  }
 
   config.lox_min[0] = conf.getInt("lox_min_0");
   config.lox_max[0] = conf.getInt("lox_max_0");
@@ -318,8 +337,8 @@ void loop() {
       break;
     }
     case 6: {
-      for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-        segment_t& segment = segments[i];
+      for (uint8_t i = 0; i < sizeof(segments_fw) / sizeof(segment_t); i++) {
+        segment_t& segment = segments_fw[i];
         uint16_t segment_length = getSegmentLength(segment);
         // shift all LEDs one space next
         for (int16_t i = segment_length - 1; i > 0; i--) {
@@ -341,11 +360,10 @@ void loop() {
       uint32_t pattern_time = (millis() - last_pattern_change) % config.sl_cycle_time;
       bool fade_in = ((millis() - last_pattern_change) % (config.sl_cycle_time * 2)) < config.sl_cycle_time;
 
-      for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-        segment_t& segment = segments[i];
-
-        static uint16_t pBase_pos = 0;
-        uint16_t base_pos = (pattern_time / config.sl_step_time) * config.sl_led_step;
+      static uint16_t pBase_pos = 0;
+      uint16_t base_pos = (pattern_time / config.sl_step_time) * config.sl_led_step;
+      for (uint8_t i = 0; i < sizeof(segments_fw) / sizeof(segment_t); i++) {
+        segment_t& segment = segments_fw[i];
         uint16_t star_pos = base_pos;
         uint32_t star_time = pattern_time % config.sl_step_time;
 
@@ -368,7 +386,9 @@ void loop() {
 
             // handle edge case where last star may not be faded out
             if (pBase_pos > 0 && base_pos == 0) {
-              leds[getPixelIndex(pBase_pos + u, segment)] = CRGB::Black;
+              if (withinSegment(pBase_pos + u, segment)) {
+                leds[getPixelIndex(pBase_pos + u, segment)] = CRGB::Black;
+              }
             }
           } else {
             leds[getPixelIndex(star_pos, segment)] = CRGB(config.sl_color);
@@ -386,9 +406,9 @@ void loop() {
           }
           star_pos++;
         }
-
-        pBase_pos = base_pos;
       }
+
+      pBase_pos = base_pos;
       break;
     }
     case 5: {
