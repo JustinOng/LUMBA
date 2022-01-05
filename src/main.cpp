@@ -276,6 +276,12 @@ void loop() {
     }
   }
 
+  if (Serial.available() && Serial.read() == 'a') {
+    Serial.print("Triggered ");
+    Serial.println(data.caps_palette_index);
+    eff_caps_start = millis();
+  }
+
   // static uint32_t last_sensor_debug_read = 0;
   // if (millis() - last_sensor_debug_read > 500) {
   //   WebSerial.println(data.caps_palette_index);
@@ -507,7 +513,7 @@ void loop() {
 void IRAM_ATTR calcHandler() {
   // 16 bit so we can do fractional increases, take the upper 8 bits for actual delta
   static uint16_t delta_shadow = 0;
-  static int32_t caps_shadow = 0;
+  static int16_t caps_shadow = 0;
   static uint16_t meteors_offset_shadow = 0;
 
   xSemaphoreTakeFromISR(param_access, NULL);
@@ -520,17 +526,22 @@ void IRAM_ATTR calcHandler() {
   runtime_data.delta = delta_shadow >> 8;
 
   if ((millis() - eff_caps_start) < config.eff_caps_dur) {
-    if (caps_shadow - config.eff_caps_slew < 65535) {
+    if (caps_shadow < 255) {
       caps_shadow += config.eff_caps_slew;
     }
   } else {
-    if (caps_shadow > config.eff_caps_slew) {
+    if (caps_shadow > 0) {
       caps_shadow -= config.eff_caps_slew;
-    } else {
-      caps_shadow = 0;
     }
   }
-  runtime_data.caps_palette_index = caps_shadow >> 8;
+
+  if (caps_shadow > 255) {
+    runtime_data.caps_palette_index = 255;
+  } else if (caps_shadow < 0) {
+    runtime_data.caps_palette_index = 0;
+  } else {
+    runtime_data.caps_palette_index = caps_shadow;
+  }
 
   meteors_offset_shadow += config.meteors_speed;
   runtime_data.meteors_offset = meteors_offset_shadow >> 8;

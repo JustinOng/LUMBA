@@ -412,8 +412,8 @@ String params =
     "'type':" +
     String(INPUTNUMBER) +
     ","
-    "'min':1,'max':65535,"
-    "'default':'255'"
+    "'min':1,'max':255,"
+    "'default':'1'"
     "},"
     "{"
     "'name':'led_pos_display',"
