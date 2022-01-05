@@ -31,36 +31,6 @@ segment_t segments[] = {
      .end = NUM_LEDS,
      .invert = true}};
 
-// this defines the segments that the star ladder effect will be drawn on
-// note: invert is ignored
-segment_t segments_star_ladder[] = {
-    {.start = 359,
-     .end = 0},
-    {.start = 360,
-     .end = 720}};
-
-constexpr uint8_t NUM_SEGMENTS_STAR_LADDER = sizeof(segments_star_ladder) / sizeof(segment_t);
-
-// this defines the segments that the line effect will be drawn on
-// note: invert is ignored
-segment_t segments_line[] = {
-    {.start = 359,
-     .end = 0},
-    {.start = 360,
-     .end = 720}};
-
-constexpr uint8_t NUM_SEGMENTS_LINE = sizeof(segments_line) / sizeof(segment_t);
-
-// this defines the segments that the solid line effect will be drawn on
-// note: invert is ignored
-segment_t segments_sline[] = {
-    {.start = 359,
-     .end = 0},
-    {.start = 360,
-     .end = 720}};
-
-constexpr uint8_t NUM_SEGMENTS_SLINE = sizeof(segments_sline) / sizeof(segment_t);
-
 AsyncWebServer server(80);
 AsyncWebConfig conf;
 
@@ -71,8 +41,6 @@ constexpr uint8_t NUM_EFFECTS = 4;
 CRGB leds_base[NUM_BASE_LEDS];
 // represents actual data written to the LED
 CRGB leds[NUM_LEDS];
-// used to track effects ruinning
-CRGB leds_effect[NUM_EFFECTS][NUM_LEDS];
 // buffer for fading
 CRGB leds_buf[NUM_LEDS];
 
@@ -114,30 +82,6 @@ void readParams() {
 
   config.mode = conf.getValue("mode")[0];
   config.pattern_num = conf.getValue("pattern_num")[0];
-  config.effect_num = conf.getValue("effect_num")[0];
-
-  config.eff_sl_color = strtol(conf.getString("eff_sl_color").c_str() + 1, NULL, 16);
-  config.eff_sl_step = conf.getInt("eff_sl_step");
-  config.eff_sl_length = conf.getInt("eff_sl_length");
-  config.eff_sl_interval = conf.getInt("eff_sl_interval");
-  config.eff_sl_fade = conf.getInt("eff_sl_fade");
-
-  config.eff_rs_color = strtol(conf.getString("eff_rs_color").c_str() + 1, NULL, 16);
-  config.eff_rs_duration = conf.getInt("eff_rs_duration");
-  config.eff_rs_chance = conf.getInt("eff_rs_chance");
-  config.eff_rs_fade = conf.getInt("eff_rs_fade");
-  config.eff_rs_length = conf.getInt("eff_rs_length");
-
-  config.eff_line_color = strtol(conf.getString("eff_line_color").c_str() + 1, NULL, 16);
-  config.eff_line_speed = conf.getInt("eff_line_speed");
-  config.eff_line_duration = conf.getInt("eff_line_duration");
-  config.eff_line_fade_dur = conf.getInt("eff_line_fade_dur");
-  config.eff_line_period = conf.getInt("eff_line_period");
-  config.eff_line_duty = conf.getInt("eff_line_duty");
-
-  config.eff_sline_color = strtol(conf.getString("eff_sline_color").c_str() + 1, NULL, 16);
-  config.eff_sline_speed = conf.getInt("eff_sline_speed");
-  config.eff_sline_fade = conf.getInt("eff_sline_fade");
 
   config.eff_caps_color = strtol(conf.getString("eff_caps_color").c_str() + 1, NULL, 16);
   config.eff_caps_dur = conf.getInt("eff_caps_dur");
@@ -145,12 +89,6 @@ void readParams() {
 
   config.auto_interval = conf.getInt("auto_interval");
   config.fade_duration = conf.getInt("fade_duration");
-  config.fade_blend = conf.getInt("fade_blend");
-
-  config.patt_triggers[0] = conf.getValue("patt_trig_0")[0] - '0';
-  config.patt_triggers[1] = conf.getValue("patt_trig_1")[0] - '0';
-  config.patt_triggers[2] = conf.getValue("patt_trig_2")[0] - '0';
-  config.patt_triggers[3] = conf.getValue("patt_trig_3")[0] - '0';
 
   segments[0].start = conf.getInt("led_mid");
   segments[1].start = conf.getInt("led_mid") + 1;
@@ -158,18 +96,6 @@ void readParams() {
   segments[2].start = conf.getInt("led_arc_mid");
   segments[2].end = conf.getInt("led_arc_corner") + 1;
   segments[3].start = conf.getInt("led_arc_mid") + 1;
-
-  segments_star_ladder[0].start = segments[0].start;
-  segments_star_ladder[1].start = segments[1].start;
-  segments_star_ladder[1].end = segments[1].end;
-
-  segments_line[0].start = segments[0].start;
-  segments_line[1].start = segments[1].start;
-  segments_line[1].end = segments[1].end;
-
-  segments_sline[0].start = segments[0].start;
-  segments_sline[1].start = segments[1].start;
-  segments_sline[1].end = segments[1].end;
 
   config.lox_min[0] = conf.getInt("lox_min_0");
   config.lox_max[0] = conf.getInt("lox_max_0");
@@ -203,8 +129,6 @@ uint32_t eff_caps_start = -1;
 
 typedef struct {
   uint8_t delta;
-  uint16_t line_pos;
-  uint16_t sline_pos;
 
   uint8_t caps_palette_index;
 
@@ -283,13 +207,6 @@ uint32_t last_pattern_change = 0;
 constexpr uint8_t MAX_PATTERN = 5;
 
 void loop() {
-  // index at which to next draw stars
-  static int16_t star_ladder_indexes[NUM_SEGMENTS_STAR_LADDER] = {-1};
-  // how long more to draw random stars
-  static uint32_t random_stars_start_time = -1;
-  static uint32_t line_start_time = -1;
-  static uint32_t sline_start_time = -1;
-
   fill_solid(leds_base, NUM_BASE_LEDS, config.base_color);
 
   runtime_data_t data;
@@ -302,7 +219,7 @@ void loop() {
     last_sensor_read = millis();
 
     for (uint8_t i = 0; i < NUM_LOX; i++) {
-      if (sensorActivated(config.patt_triggers[i], config.lox_min[i], config.lox_max[i])) {
+      if (sensorActivated(i, config.lox_min[i], config.lox_max[i])) {
         WebSerial.print("Triggered sensor ");
         WebSerial.println(i);
 
@@ -459,8 +376,6 @@ void loop() {
 void IRAM_ATTR calcHandler() {
   // 16 bit so we can do fractional increases, take the upper 8 bits for actual delta
   static uint16_t delta_shadow = 0;
-  // static uint16_t line_pos_shadow = 0;
-  static uint32_t sline_pos_shadow = 0;
   static int32_t caps_shadow = 0;
   static uint32_t meteors_offset_shadow = 0;
 
@@ -472,12 +387,6 @@ void IRAM_ATTR calcHandler() {
   }
 
   runtime_data.delta = delta_shadow >> 8;
-
-  // line_pos_shadow += config.eff_line_speed;
-  runtime_data.line_pos += 1;
-
-  sline_pos_shadow += config.eff_sline_speed;
-  runtime_data.sline_pos = sline_pos_shadow >> 8;
 
   if ((millis() - eff_caps_start) < config.eff_caps_dur) {
     caps_shadow = max(caps_shadow + config.eff_caps_slew, 65535);
