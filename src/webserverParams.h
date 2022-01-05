@@ -78,7 +78,7 @@ String params =
     "{'v':'2','l':'Wave 2'},"
     "{'v':'3','l':'Wave 3'},"
     "{'v':'4','l':'Wave 4'},"
-    "{'v':'5','l':'Fireworks'}],"
+    "{'v':'5','l':'Fireworks'},"
     "{'v':'9','l':'Solid (Sec Color)'}],"
     "'default':'0'"
     "},"
