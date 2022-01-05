@@ -17,6 +17,17 @@
 
 FASTLED_USING_NAMESPACE
 
+enum {
+  PAT_WAVE0 = 0,
+  PAT_WAVE1,
+  PAT_WAVE2,
+  PAT_WAVE3,
+  PAT_WAVE4,
+  PAT_FIREWORKS = 5,
+  PAT_METEORS = 6,
+  PAT_STAR_LADDER = 7
+};
+
 segment_t segments[] = {
     {.start = 359,
      .end = 0,
@@ -230,9 +241,18 @@ void setup() {
 // manual mode, param "pattern_num" overrides this
 uint8_t active_pattern = 0;
 uint32_t last_pattern_change = 0;
-constexpr uint8_t MAX_PATTERN = 5;
+constexpr uint8_t MAX_PATTERN = 7;
+
+typedef enum {
+  FADE_IDLE,
+  FADE_OUT,
+  FADE_OUT_DONE,
+} state_t;
+
+state_t fade_state = FADE_IDLE;
 
 void loop() {
+  static uint32_t fade_out_start = -1;
   fill_solid(leds_base, NUM_BASE_LEDS, config.base_color);
 
   runtime_data_t data;
@@ -283,44 +303,42 @@ void loop() {
     if ((millis() - last_pattern_change) > (config.auto_interval * 1000)) {
       static uint8_t last_delta = 0;
 
-      // if we are transitioning between waves, change only at the end of the period
-      // so that we don't have an abrupt transition
-      if (active_pattern >= 4 || data.delta < last_delta) {
-        last_pattern_change = millis();
+      if ((active_pattern == PAT_WAVE4 || active_pattern == PAT_METEORS) && fade_state != FADE_OUT_DONE) {
+        if (fade_state != FADE_OUT) {
+          fade_state = FADE_OUT;
+          Serial.println("Starting fade out");
+          fade_out_start = millis();
+        }
+      } else {
+        fade_state = FADE_IDLE;
+        // if we are transitioning between waves, change only at the end of the period
+        // so that we don't have an abrupt transition
+        if (active_pattern >= 4 || data.delta < last_delta) {
+          last_pattern_change = millis();
 
-        if (active_pattern == 4 || active_pattern == 5) {
-          // wipe LED buffer if next playing non-wave
-          fill_solid(leds, NUM_LEDS, CRGB::Black);
+          active_pattern++;
+
+          if (active_pattern > MAX_PATTERN) {
+            active_pattern = 0;
+          }
+
+          Serial.print("Change to pattern ");
+          Serial.println(active_pattern);
         }
 
-        active_pattern++;
-
-        if (active_pattern > MAX_PATTERN) {
-          active_pattern = 0;
-        }
-
-        Serial.print("Change to pattern ");
-        Serial.println(active_pattern);
+        last_delta = data.delta;
       }
-
-      last_delta = data.delta;
     }
   }
 
-  CRGB* buf;
-  bool fade = ((millis() - last_pattern_change) < config.fade_duration) && (active_pattern == 5 || active_pattern == 0);
-  if (fade) {
-    buf = leds_buf;
-  } else {
-    buf = leds;
-  }
+  CRGB* buf = leds;
 
   switch (active_pattern) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4: {
+    case PAT_WAVE0:
+    case PAT_WAVE1:
+    case PAT_WAVE2:
+    case PAT_WAVE3:
+    case PAT_WAVE4: {
       static uint8_t last_run_delta = 0;
 
       // because computation runs at a fixed frame rate while the drawing rate is dependent
@@ -336,7 +354,7 @@ void loop() {
 
       break;
     }
-    case 6: {
+    case PAT_METEORS: {
       static uint8_t pOffset = 0;
 
       while (pOffset != data.meteors_offset) {
@@ -361,7 +379,7 @@ void loop() {
       }
       break;
     }
-    case 7: {
+    case PAT_STAR_LADDER: {
       uint32_t pattern_time = (millis() - last_pattern_change) % config.sl_cycle_time;
       bool fade_in = ((millis() - last_pattern_change) % (config.sl_cycle_time * 2)) < config.sl_cycle_time;
 
@@ -416,7 +434,7 @@ void loop() {
       pBase_pos = base_pos;
       break;
     }
-    case 5: {
+    case PAT_FIREWORKS: {
       CRGBPalette16 fw_palette;
 
 #define MAP_PALETTE(start, end, color_index)       \
@@ -439,17 +457,19 @@ void loop() {
       break;
   }
 
-  if (fade) {
-    memcpy((uint8_t*)leds, (uint8_t*)leds_buf, NUM_LEDS * sizeof(CRGB));
-
-    int32_t delta = millis() - last_pattern_change;
-    if (delta > 0 && delta < (config.fade_duration / 2)) {
+  if (fade_state == FADE_OUT) {
+    if (millis() - fade_out_start < config.fade_duration) {
+      int32_t delta = millis() - fade_out_start;
       // fade out
-      fadeToBlackBy(leds, NUM_LEDS, map(delta, 0, config.fade_duration / 2, 0, 255));
-    } else if (delta >= (config.fade_duration / 2) && delta < config.fade_duration) {
-      // fade in
-      fadeToBlackBy(leds, NUM_LEDS, map(delta, config.fade_duration / 2, config.fade_duration, 255, 0));
+      fadeToBlackBy(leds, NUM_LEDS, map(delta, 0, config.fade_duration, 0, 255));
+    } else {
+      fade_state = FADE_OUT_DONE;
     }
+  }
+
+  if (active_pattern == PAT_FIREWORKS && (millis() - last_pattern_change) < config.fade_duration) {
+    // fade in
+    fadeToBlackBy(leds, NUM_LEDS, map(millis() - last_pattern_change, 0, config.fade_duration, 255, 0));
   }
 
   EVERY_N_SECONDS(10) {
