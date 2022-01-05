@@ -280,7 +280,7 @@ void loop() {
   xSemaphoreGive(param_access);
 
   static uint32_t last_sensor_read = 0;
-  if (millis() - last_sensor_read > 100) {
+  if (millis() - last_sensor_read > 50) {
     last_sensor_read = millis();
     if (sensorActivated(config.patt_triggers[0], config.lox_min[0], config.lox_max[0])) {
       if (config.effect_num == '0') {
@@ -316,13 +316,15 @@ void loop() {
       runtime_data.sline_pos = 0;
       WebSerial.println("Triggered sensor slot 3");
     }
+
+    for (uint8_t i = 0; i < NUM_LOX; i++) {
+      lox_readings[i] = readSensor(i);
+    }
   }
 
   static uint32_t last_sensor_debug_read = 0;
   if (millis() - last_sensor_debug_read > 500) {
-    for (uint8_t i = 0; i < NUM_LOX; i++) {
-      lox_readings[i] = readSensor(i);
-    }
+    logSensors();
   }
 
   uint32_t start = micros();

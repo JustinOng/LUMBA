@@ -1,5 +1,7 @@
 #include "sensors.h"
 
+#include <WebSerial.h>
+
 #include "VL53L0X.h"
 
 struct {
@@ -70,17 +72,28 @@ void logSensors() {
   for (uint8_t i = 0; i < NUM_LOX; i++) {
     Serial.print(i);
     Serial.print(": ");
-    Serial.print(lox[i].readRangeContinuousMillimeters());
+    Serial.print(readSensor(i));
     Serial.print(" ");
   }
   Serial.println();
 }
 
 uint16_t readSensor(uint8_t i) {
-  static uint16_t val = 0;
-  constexpr float alpha = 0.5;
+  static uint32_t last_read[NUM_LOX] = {0};
+  static uint16_t last_val[NUM_LOX] = {0};
+  constexpr float alpha = 0.2;
 
-  uint16_t new_val = lox[i].readRangeContinuousMillimeters();
-  val = val * (1 - alpha) + new_val * alpha;
+  uint16_t &val = last_val[i];
+
+  if (millis() - last_read[i] > 50) {
+    uint16_t new_val = lox[i].readRangeContinuousMillimeters();
+    last_read[i] = millis();
+
+    if (new_val > 1500) {
+      new_val = 1500;
+    }
+    val = val * (1 - alpha) + new_val * alpha;
+  }
+
   return val;
 }
