@@ -288,6 +288,15 @@ String params =
     "'default':'10'"
     "},"
     "{"
+    "'name':'meteors_length',"
+    "'label':'Meteors Length',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
     "'name':'fw_color_0',"
     "'label':'Fireworks Color 0',"
     "'type':" +

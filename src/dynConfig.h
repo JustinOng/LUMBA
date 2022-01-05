@@ -22,6 +22,7 @@ typedef struct {
   uint16_t meteors_speed;
   uint8_t meteors_period;
   uint8_t meteors_fade;
+  uint8_t meteors_length;
 
   uint32_t fw_colors[5];
   uint8_t fw_increment;

@@ -110,6 +110,7 @@ void readParams() {
   config.meteors_period = conf.getInt("meteors_period");
   config.meteors_speed = conf.getInt("meteors_speed");
   config.meteors_fade = conf.getInt("meteors_fade");
+  config.meteors_length = conf.getInt("meteors_length");
 
   config.mode = conf.getValue("mode")[0];
   config.pattern_num = conf.getValue("pattern_num")[0];
@@ -386,7 +387,7 @@ void loop() {
         leds[getPixelIndex(0, segment)].fadeToBlackBy(config.meteors_fade);
 
         // if we're at the start of the period, introduce new meteor
-        if (data.meteors_offset == 0) {
+        if (data.meteors_offset < config.meteors_length) {
           leds[getPixelIndex(0, segment)] = CRGB(config.meteors_color);
         }
       }
