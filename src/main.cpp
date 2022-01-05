@@ -337,22 +337,27 @@ void loop() {
       break;
     }
     case 6: {
-      for (uint8_t i = 0; i < sizeof(segments_fw) / sizeof(segment_t); i++) {
-        segment_t& segment = segments_fw[i];
-        uint16_t segment_length = getSegmentLength(segment);
-        // shift all LEDs one space next
-        for (int16_t i = segment_length - 1; i > 0; i--) {
-          leds[getPixelIndex(i, segment)] = leds[getPixelIndex(i - 1, segment)];
-        }
+      static uint8_t pOffset = 0;
 
-        // default the first LED to a dimmed verison of the second LED
-        leds[getPixelIndex(0, segment)] = leds[getPixelIndex(1, segment)];
-        leds[getPixelIndex(0, segment)].fadeToBlackBy(config.meteors_fade);
+      while (pOffset != data.meteors_offset) {
+        for (uint8_t i = 0; i < sizeof(segments_fw) / sizeof(segment_t); i++) {
+          segment_t& segment = segments_fw[i];
+          uint16_t segment_length = getSegmentLength(segment);
+          // shift all LEDs one space next
+          for (int16_t i = segment_length - 1; i > 0; i--) {
+            leds[getPixelIndex(i, segment)] = leds[getPixelIndex(i - 1, segment)];
+          }
 
-        // if we're at the start of the period, introduce new meteor
-        if (data.meteors_offset < config.meteors_length) {
-          leds[getPixelIndex(0, segment)] = CRGB(config.meteors_color);
+          // default the first LED to a dimmed verison of the second LED
+          leds[getPixelIndex(0, segment)] = leds[getPixelIndex(1, segment)];
+          leds[getPixelIndex(0, segment)].fadeToBlackBy(config.meteors_fade);
+
+          // if we're at the start of the period, introduce new meteor
+          if ((pOffset % config.meteors_period) < config.meteors_length) {
+            leds[getPixelIndex(0, segment)] = CRGB(config.meteors_color);
+          }
         }
+        pOffset++;
       }
       break;
     }
@@ -483,7 +488,7 @@ void IRAM_ATTR calcHandler() {
   // 16 bit so we can do fractional increases, take the upper 8 bits for actual delta
   static uint16_t delta_shadow = 0;
   static int32_t caps_shadow = 0;
-  static uint32_t meteors_offset_shadow = 0;
+  static uint16_t meteors_offset_shadow = 0;
 
   xSemaphoreTakeFromISR(param_access, NULL);
   if (active_pattern < 5) {
@@ -509,9 +514,5 @@ void IRAM_ATTR calcHandler() {
 
   meteors_offset_shadow += config.meteors_speed;
   runtime_data.meteors_offset = meteors_offset_shadow >> 8;
-  if (runtime_data.meteors_offset >= config.meteors_period) {
-    runtime_data.meteors_offset = 0;
-    config.meteors_period = 0;
-  }
   xSemaphoreGive(param_access);
 }
