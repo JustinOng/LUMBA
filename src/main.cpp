@@ -389,7 +389,16 @@ void loop() {
   }
 
   if (fade) {
-    nblend(leds, leds_buf, NUM_LEDS, config.fade_blend);
+    memcpy((uint8_t*)leds, (uint8_t*)leds_buf, NUM_LEDS * sizeof(CRGB));
+
+    int32_t delta = millis() - last_pattern_change;
+    if (delta > 0 && delta < (config.fade_duration / 2)) {
+      // fade out
+      fadeToBlackBy(leds, NUM_LEDS, map(delta, 0, config.fade_duration / 2, 0, 255));
+    } else if (delta >= (config.fade_duration / 2) && delta < config.fade_duration) {
+      // fade in
+      fadeToBlackBy(leds, NUM_LEDS, map(delta, config.fade_duration / 2, config.fade_duration, 255, 0));
+    }
   }
 
   EVERY_N_SECONDS(10) {
