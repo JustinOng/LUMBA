@@ -47,6 +47,10 @@ typedef struct {
   uint16_t eff_sline_speed;
   uint8_t eff_sline_fade;
 
+  uint32_t eff_caps_color;
+  uint16_t eff_caps_dur;
+  uint16_t eff_caps_slew;
+
   uint16_t param1;
   uint16_t param2;
   uint16_t param3;

@@ -489,6 +489,32 @@ String params =
     "'default':'32'"
     "},"
     "{"
+    "'name':'eff_caps_color',"
+    "'label':'Caps: Color',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#ffffff'"
+    "},"
+    "{"
+    "'name':'eff_caps_dur',"
+    "'label':'Caps: Duration (ms)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'1000'"
+    "},"
+    "{"
+    "'name':'eff_caps_slew',"
+    "'label':'Caps: Slew Rate',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'255'"
+    "},"
+    "{"
     "'name':'led_mid',"
     "'label':'LED: Index of mid split',"
     "'type':" +

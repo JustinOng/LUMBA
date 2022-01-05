@@ -133,6 +133,10 @@ void readParams() {
   config.eff_sline_speed = conf.getInt("eff_sline_speed");
   config.eff_sline_fade = conf.getInt("eff_sline_fade");
 
+  config.eff_caps_color = strtol(conf.getString("eff_caps_color").c_str() + 1, NULL, 16);
+  config.eff_caps_dur = conf.getInt("eff_caps_dur");
+  config.eff_caps_slew = conf.getInt("eff_caps_slew");
+
   config.auto_interval = conf.getInt("auto_interval");
   config.fade_duration = conf.getInt("fade_duration");
   config.fade_blend = conf.getInt("fade_blend");
@@ -187,10 +191,14 @@ void handleRoot(AsyncWebServerRequest* request) {
 
 hw_timer_t* timer = NULL;
 
+uint32_t eff_caps_start = -1;
+
 typedef struct {
   uint8_t delta;
   uint16_t line_pos;
   uint16_t sline_pos;
+
+  uint8_t caps_palette_index;
 } runtime_data_t;
 
 runtime_data_t runtime_data;
@@ -282,42 +290,15 @@ void loop() {
   static uint32_t last_sensor_read = 0;
   if (millis() - last_sensor_read > 50) {
     last_sensor_read = millis();
-    if (sensorActivated(config.patt_triggers[0], config.lox_min[0], config.lox_max[0])) {
-      if (config.effect_num == '0') {
-        for (uint8_t i = 0; i < NUM_SEGMENTS_STAR_LADDER; i++) {
-          star_ladder_indexes[i] = segments_star_ladder[i].start;
-        }
-      } else if (config.effect_num == '1') {
-        random_stars_start_time = millis();
-      } else if (config.effect_num == '2') {
-        line_start_time = millis();
-        runtime_data.line_pos = 0;
-      } else if (config.effect_num == '3') {
-        sline_start_time = millis();
-        runtime_data.sline_pos = 0;
-      }
-      Serial.println("Triggered sensor slot 0");
-      WebSerial.println("Triggered sensor slot 0");
-    }
-
-    if (sensorActivated(config.patt_triggers[1], config.lox_min[1], config.lox_max[1])) {
-      random_stars_start_time = millis();
-      WebSerial.println("Triggered sensor slot 1");
-    }
-
-    if (sensorActivated(config.patt_triggers[2], config.lox_min[2], config.lox_max[2])) {
-      line_start_time = millis();
-      runtime_data.line_pos = 0;
-      WebSerial.println("Triggered sensor slot 2");
-    }
-
-    if (sensorActivated(config.patt_triggers[3], config.lox_min[3], config.lox_max[3])) {
-      sline_start_time = millis();
-      runtime_data.sline_pos = 0;
-      WebSerial.println("Triggered sensor slot 3");
-    }
 
     for (uint8_t i = 0; i < NUM_LOX; i++) {
+      if (sensorActivated(config.patt_triggers[i], config.lox_min[i], config.lox_max[i])) {
+        WebSerial.print("Triggered sensor ");
+        WebSerial.println(i);
+
+        eff_caps_start = millis();
+      }
+
       lox_readings[i] = readSensor(i);
     }
   }
@@ -378,102 +359,11 @@ void loop() {
       // more than one time
       while (data.delta != last_run_delta) {
         for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-          drawWaves(buf, config.waves[active_pattern], data.delta, segments[i]);
+          drawWaves(buf, config.waves[active_pattern], config.eff_caps_color, data.caps_palette_index, data.delta, segments[i]);
         }
 
         last_run_delta++;
       }
-
-      if (config.effect_num == '0') {
-        static uint32_t last_change = 0;
-        CRGB star_color = CRGB(config.eff_sl_color);
-
-        if (millis() - last_change > config.eff_sl_interval) {
-          last_change = millis();
-
-          for (uint8_t i = 0; i < NUM_SEGMENTS_STAR_LADDER; i++) {
-            segment_t& segment = segments_star_ladder[i];
-
-            if (!withinSegment(star_ladder_indexes[i], segment)) {
-              continue;
-            }
-
-            for (uint8_t u = 0; u < config.eff_sl_length; u++) {
-              uint8_t index = star_ladder_indexes[i] + u;
-              if (!withinSegment(index, segment)) {
-                break;
-              }
-              leds_effect[0][getPixelIndex(index, segment)] = star_color;
-            }
-            star_ladder_indexes[i] += config.eff_sl_step;
-          }
-        }
-
-        fadeToBlackBy(leds_effect[0], NUM_LEDS, config.eff_sl_fade);
-      } else if (config.effect_num == '1') {
-        if (millis() - random_stars_start_time < config.eff_rs_duration) {
-          uint16_t i = 0;
-          while (i < NUM_LEDS) {
-            if (random8(config.eff_rs_chance) == 0) {
-              for (uint16_t u = 0; u < config.eff_rs_length && i < NUM_LEDS; u++) {
-                leds_effect[1][i++] = CRGB(config.eff_rs_color);
-              }
-            } else {
-              i++;
-            }
-          }
-        }
-
-        fadeToBlackBy(leds_effect[1], NUM_LEDS, config.eff_rs_fade);
-      } else if (config.effect_num == '2') {
-        bool effectActive = (millis() - line_start_time) < (config.eff_line_duration + config.eff_line_fade_dur);
-
-        if (effectActive) {
-          for (uint8_t i = 0; i < NUM_SEGMENTS_LINE; i++) {
-            segment_t& segment = segments_line[i];
-
-            uint16_t c = runtime_data.line_pos;
-
-            uint16_t segment_length = getSegmentLength(segment);
-
-            for (uint16_t u = 0; u < segment_length; u++) {
-              if (c % config.eff_line_period < config.eff_line_duty) {
-                leds_effect[2][getPixelIndex(u, segment)] = CRGB(config.eff_line_color);
-              } else {
-                leds_effect[2][getPixelIndex(u, segment)] = CRGB::Black;
-              }
-              c++;
-            }
-          }
-
-          int32_t fade_time = millis() - line_start_time - config.eff_line_duration;
-          if (fade_time >= 0) {
-            fadeLightBy(leds_effect[2], NUM_LEDS, map(fade_time, 0, config.eff_line_fade_dur, 0, 255));
-          }
-        }
-      } else if (config.effect_num == '3') {
-        if (millis() - sline_start_time < config.eff_sline_duration) {
-          for (uint8_t i = 0; i < NUM_SEGMENTS_SLINE; i++) {
-            segment_t& segment = segments_line[i];
-
-            CRGB line_color = CRGB(config.eff_sline_color);
-            uint16_t segment_length = getSegmentLength(segment);
-
-            for (uint16_t u = 0; u < segment_length && u < data.sline_pos; u++) {
-              leds_effect[3][getPixelIndex(u, segment)] = line_color;
-            }
-          }
-        } else {
-          fadeLightBy(leds_effect[3], NUM_LEDS, config.eff_sline_fade);
-        }
-      }
-
-      for (uint16_t i = 0; i < NUM_LEDS; i++) {
-        for (uint8_t u = 0; u < NUM_EFFECTS; u++) {
-          buf[i] += leds_effect[u][i];
-        }
-      }
-      break;
     }
     case 5: {
       CRGBPalette16 fw_palette;
@@ -517,6 +407,8 @@ void IRAM_ATTR calcHandler() {
   static uint16_t delta_shadow = 0;
   // static uint16_t line_pos_shadow = 0;
   static uint32_t sline_pos_shadow = 0;
+  static int32_t caps_shadow = 0;
+
   xSemaphoreTakeFromISR(param_access, NULL);
   if (active_pattern < 5) {
     delta_shadow += config.waves[active_pattern].speed;
@@ -531,5 +423,12 @@ void IRAM_ATTR calcHandler() {
 
   sline_pos_shadow += config.eff_sline_speed;
   runtime_data.sline_pos = sline_pos_shadow >> 8;
+
+  if ((millis() - eff_caps_start) < config.eff_caps_dur) {
+    caps_shadow = max(caps_shadow + config.eff_caps_slew, 65535);
+  } else {
+    caps_shadow = min(caps_shadow - config.eff_caps_slew, 0);
+  }
+  runtime_data.caps_palette_index = caps_shadow >> 8;
   xSemaphoreGive(param_access);
 }
