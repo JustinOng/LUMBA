@@ -360,12 +360,22 @@ void loop() {
   if (config.led_pos_display) {
     if (millis() % 1000 < 500) {
       leds[segments[0].start] = CRGB::Red;
+      leds[segments[0].start + 1] = CRGB::Black;
+
       leds[segments[1].end] = CRGB::Green;
+      leds[segments[1].end + 1] = CRGB::Black;
+
       leds[segments[2].start] = CRGB::Blue;
+      leds[segments[2].start + 1] = CRGB::Black;
     } else {
       leds[segments[0].start] = CRGB::Black;
+      leds[segments[0].start + 1] = CRGB::Red;
+
       leds[segments[1].end] = CRGB::Black;
+      leds[segments[1].end + 1] = CRGB::Green;
+
       leds[segments[2].start] = CRGB::Black;
+      leds[segments[2].start + 1] = CRGB::Blue;
     }
   }
 
