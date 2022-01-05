@@ -288,6 +288,59 @@ String params =
     "'default':'1'"
     "},"
     "{"
+    "'name':'sl_color',"
+    "'label':'Star Ladder Color',"
+    "'type':" +
+    String(INPUTCOLOR) +
+    ","
+    "'default':'#ffffff'"
+    "},"
+    "{"
+    "'name':'sl_led_step',"
+    "'label':'Star Ladder LED Step',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'10'"
+    "},"
+    "{"
+    "'name':'sl_step_time',"
+    "'label':'Star Ladder Step Time (ms)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'500'"
+    "},"
+    "{"
+    "'name':'sl_fade_time',"
+    "'label':'Star Ladder Fade Time (ms)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'100'"
+    "},"
+    "{"
+    "'name':'sl_cycle_time',"
+    "'label':'Star Ladder Cycle Time (ms)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'1000'"
+    "},"
+    "{"
+    "'name':'sl_star_len',"
+    "'label':'Star Ladder Star Length',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':255,"
+    "'default':'1'"
+    "},"
+    "{"
     "'name':'fw_color_0',"
     "'label':'Fireworks Color 0',"
     "'type':" +

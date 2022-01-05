@@ -23,6 +23,13 @@ typedef struct {
   uint8_t meteors_fade;
   uint8_t meteors_length;
 
+  uint32_t sl_color;
+  uint8_t sl_led_step;
+  uint16_t sl_step_time;
+  uint16_t sl_fade_time;
+  uint16_t sl_cycle_time;
+  uint16_t sl_star_len;
+
   uint32_t fw_colors[5];
   uint8_t fw_increment;
 

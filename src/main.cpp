@@ -80,6 +80,13 @@ void readParams() {
   config.meteors_fade = conf.getInt("meteors_fade");
   config.meteors_length = conf.getInt("meteors_length");
 
+  config.sl_color = strtol(conf.getString("sl_color").c_str() + 1, NULL, 16);
+  config.sl_led_step = conf.getInt("sl_led_step");
+  config.sl_step_time = conf.getInt("sl_step_time");
+  config.sl_fade_time = conf.getInt("sl_fade_time");
+  config.sl_cycle_time = conf.getInt("sl_cycle_time");
+  config.sl_star_len = conf.getInt("sl_star_len");
+
   config.mode = conf.getValue("mode")[0];
   config.pattern_num = conf.getValue("pattern_num")[0];
 
@@ -241,7 +248,12 @@ void loop() {
   if (config.mode == '0') {
     // manual
     // convert ASCII digit into number
-    active_pattern = config.pattern_num - '0';
+    uint8_t new_active_pattern = config.pattern_num - '0';
+
+    if (active_pattern != new_active_pattern) {
+      last_pattern_change = millis();
+      active_pattern = new_active_pattern;
+    }
   } else {
     // auto
     if ((millis() - last_pattern_change) > (config.auto_interval * 1000)) {
@@ -249,8 +261,14 @@ void loop() {
 
       // if we are transitioning between waves, change only at the end of the period
       // so that we don't have an abrupt transition
-      if (active_pattern == 4 || data.delta < last_delta) {
+      if (active_pattern >= 4 || data.delta < last_delta) {
         last_pattern_change = millis();
+
+        if (active_pattern == 4 || active_pattern == 5) {
+          // wipe LED buffer if next playing non-wave
+          fill_solid(leds, NUM_LEDS, CRGB::Black);
+        }
+
         active_pattern++;
 
         if (active_pattern > MAX_PATTERN) {
@@ -313,6 +331,38 @@ void loop() {
       break;
     }
     case 6: {
+      uint32_t pattern_time = (millis() - last_pattern_change) % config.sl_cycle_time;
+      bool fade_in = ((millis() - last_pattern_change) % (config.sl_cycle_time * 2)) < config.sl_cycle_time;
+
+      for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
+        segment_t& segment = segments[i];
+
+        uint16_t star_pos = (pattern_time / config.sl_step_time) * config.sl_led_step;
+        uint32_t star_time = pattern_time % config.sl_step_time;
+
+        for (uint8_t u = 0; u < config.sl_star_len; u++) {
+          if (!withinSegment(star_pos, segment)) {
+            break;
+          }
+
+          if (fade_in) {
+            leds[getPixelIndex(star_pos, segment)] = CRGB(config.sl_color);
+            if (star_time < config.sl_fade_time) {
+              // fade in star if within sl_fade_time
+              leds[getPixelIndex(star_pos, segment)].fadeToBlackBy(map(star_time, 0, config.sl_fade_time, 255, 0));
+            }
+          } else {
+            leds[getPixelIndex(star_pos, segment)] = CRGB(config.sl_color);
+            if (star_time < config.sl_fade_time) {
+              // fade in star if within sl_fade_time
+              leds[getPixelIndex(star_pos, segment)].fadeToBlackBy(map(star_time, 0, config.sl_fade_time, 0, 255));
+            } else {
+              leds[getPixelIndex(star_pos, segment)] = CRGB::Black;
+            }
+          }
+          star_pos++;
+        }
+      }
       break;
     }
     case 7: {
