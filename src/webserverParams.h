@@ -561,6 +561,14 @@ String params =
     "'default':'255'"
     "},"
     "{"
+    "'name':'led_pos_display',"
+    "'label':'LED Position Display',"
+    "'type':" +
+    String(INPUTCHECKBOX) +
+    ","
+    "'default':'0'"
+    "},"
+    "{"
     "'name':'led_mid',"
     "'label':'LED: Index of mid split',"
     "'type':" +

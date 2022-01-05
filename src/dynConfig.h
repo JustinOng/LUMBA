@@ -65,6 +65,8 @@ typedef struct {
 
   uint16_t lox_min[4];
   uint16_t lox_max[4];
+
+  bool led_pos_display;
 } dyn_config_t;
 
 extern dyn_config_t config;

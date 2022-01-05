@@ -179,6 +179,8 @@ void readParams() {
   config.lox_max[2] = conf.getInt("lox_max_2");
   config.lox_min[3] = conf.getInt("lox_min_3");
   config.lox_max[3] = conf.getInt("lox_max_3");
+
+  config.led_pos_display = conf.getBool("led_pos_display");
 }
 
 void handleRoot(AsyncWebServerRequest* request) {
@@ -436,6 +438,18 @@ void loop() {
     Serial.print("Calculation time: ");
     Serial.print(micros() - start);
     Serial.println("us");
+  }
+
+  if (config.led_pos_display) {
+    if (millis() % 1000 < 500) {
+      leds[segments[0].start] = CRGB::Red;
+      leds[segments[1].end] = CRGB::Green;
+      leds[segments[2].start] = CRGB::Blue;
+    } else {
+      leds[segments[0].start] = CRGB::Black;
+      leds[segments[1].end] = CRGB::Black;
+      leds[segments[2].start] = CRGB::Black;
+    }
   }
 
   FastLED.show();
