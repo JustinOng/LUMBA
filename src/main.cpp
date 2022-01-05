@@ -309,6 +309,8 @@ void loop() {
 
         last_run_delta++;
       }
+
+      break;
     }
     case 5: {
       for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
