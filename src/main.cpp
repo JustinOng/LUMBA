@@ -312,7 +312,7 @@ void loop() {
 
       break;
     }
-    case 5: {
+    case 6: {
       for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
         segment_t& segment = segments[i];
         uint16_t segment_length = getSegmentLength(segment);
@@ -332,7 +332,7 @@ void loop() {
       }
       break;
     }
-    case 6: {
+    case 7: {
       uint32_t pattern_time = (millis() - last_pattern_change) % config.sl_cycle_time;
       bool fade_in = ((millis() - last_pattern_change) % (config.sl_cycle_time * 2)) < config.sl_cycle_time;
 
@@ -367,7 +367,7 @@ void loop() {
       }
       break;
     }
-    case 7: {
+    case 5: {
       CRGBPalette16 fw_palette;
 
 #define MAP_PALETTE(start, end, color_index)       \
