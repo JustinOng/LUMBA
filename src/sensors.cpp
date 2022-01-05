@@ -81,7 +81,7 @@ void logSensors() {
 uint16_t readSensor(uint8_t i) {
   static uint32_t last_read[NUM_LOX] = {0};
   static uint16_t last_val[NUM_LOX] = {0};
-  constexpr float alpha = 0.2;
+  constexpr float alpha = 0.1;
 
   uint16_t &val = last_val[i];
 
