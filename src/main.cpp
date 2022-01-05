@@ -253,6 +253,11 @@ void loop() {
     if (active_pattern != new_active_pattern) {
       last_pattern_change = millis();
       active_pattern = new_active_pattern;
+
+      if (active_pattern > 4) {
+        // wipe LED buffer if next playing non-wave
+        fill_solid(leds, NUM_LEDS, CRGB::Black);
+      }
     }
   } else {
     // auto
