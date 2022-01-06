@@ -40,8 +40,17 @@ String params =
     "'default':'0'"
     "},"
     "{"
-    "'name':'auto_interval',"
-    "'label':'Auto Cycle Interval (s)',"
+    "'name':'auto_interval_wave',"
+    "'label':'Auto Cycle Interval Waves (s)',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'10'"
+    "},"
+    "{"
+    "'name':'auto_interval_fw',"
+    "'label':'Auto Cycle Interval Fireworks (s)',"
     "'type':" +
     String(INPUTNUMBER) +
     ","

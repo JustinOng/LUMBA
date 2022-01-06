@@ -119,7 +119,8 @@ void readParams() {
   config.eff_caps_dur = conf.getInt("eff_caps_dur");
   config.eff_caps_slew = conf.getInt("eff_caps_slew");
 
-  config.auto_interval = conf.getInt("auto_interval");
+  config.auto_interval_waves = conf.getInt("auto_interval_wave");
+  config.auto_interval_fireworks = conf.getInt("auto_interval_fw");
   config.fade_duration = conf.getInt("fade_duration");
 
   segments[0].start = conf.getInt("led_mid");
@@ -306,7 +307,9 @@ void loop() {
     }
   } else {
     // auto
-    if ((millis() - last_pattern_change) > (config.auto_interval * 1000)) {
+    if (
+        ((active_pattern <= 4) && (millis() - last_pattern_change) > (config.auto_interval_waves * 1000)) ||
+        ((active_pattern > 4) && (millis() - last_pattern_change) > (config.auto_interval_fireworks * 1000))) {
       static uint8_t last_delta = 0;
 
       if ((active_pattern == PAT_WAVE4 || active_pattern == PAT_METEORS) && fade_state != FADE_OUT_DONE) {

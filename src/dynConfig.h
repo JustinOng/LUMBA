@@ -5,7 +5,8 @@
 
 typedef struct {
   char mode;
-  uint16_t auto_interval;
+  uint16_t auto_interval_waves;
+  uint16_t auto_interval_fireworks;
   uint16_t fade_duration;
 
   char pattern_num;
