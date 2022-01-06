@@ -313,7 +313,7 @@ void loop() {
         ((active_pattern > 4) && (millis() - last_pattern_change) > (config.auto_interval_fireworks * 1000))) {
       static uint8_t last_delta = 0;
 
-      if ((active_pattern == PAT_WAVE4 || active_pattern == PAT_METEORS) && fade_state != FADE_OUT_DONE) {
+      if ((active_pattern == PAT_WAVE4 || active_pattern == PAT_FIREWORKS || active_pattern == PAT_METEORS || active_pattern == PAT_STAR_LADDER) && fade_state != FADE_OUT_DONE) {
         if (fade_state != FADE_OUT) {
           fade_state = FADE_OUT;
           Serial.println("Starting fade out");
@@ -343,6 +343,8 @@ void loop() {
 
   CRGB* buf = leds;
 
+  static uint8_t pPattern = -1;
+
   switch (active_pattern) {
     case PAT_WAVE0:
     case PAT_WAVE1:
@@ -366,6 +368,10 @@ void loop() {
     }
     case PAT_METEORS: {
       static uint8_t pOffset = 0;
+
+      if (pPattern != active_pattern) {
+        fill_solid(leds, NUM_LEDS, CRGB::Black);
+      }
 
       while (pOffset != data.meteors_offset) {
         for (uint8_t i = 0; i < sizeof(segments_fw) / sizeof(segment_t); i++) {
@@ -467,12 +473,19 @@ void loop() {
       break;
   }
 
+  pPattern = active_pattern;
+
   if (fade_state == FADE_OUT) {
     if (millis() - fade_out_start < config.fade_duration) {
       int32_t delta = millis() - fade_out_start;
       // fade out
-      fadeToBlackBy(leds, NUM_LEDS, map(delta, 0, config.fade_duration, 0, 255));
+      if (delta < config.fade_duration) {
+        fadeToBlackBy(leds, NUM_LEDS, map(delta, 0, config.fade_duration, 0, 255));
+      } else {
+        fill_solid(leds, NUM_LEDS, CRGB::Black);
+      }
     } else {
+      fill_solid(leds, NUM_LEDS, CRGB::Black);
       fade_state = FADE_OUT_DONE;
     }
   }
