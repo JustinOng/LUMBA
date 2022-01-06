@@ -267,6 +267,7 @@ void loop() {
 
     for (uint8_t i = 0; i < NUM_LOX; i++) {
       if (sensorActivated(i, config.lox_min[i], config.lox_max[i])) {
+        WebSerial.print((uint32_t)millis());
         WebSerial.print("Triggered sensor ");
         WebSerial.println(i);
 

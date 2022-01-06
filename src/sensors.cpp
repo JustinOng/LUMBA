@@ -48,9 +48,21 @@ bool sensorActivated(uint8_t i, uint16_t min, uint16_t max) {
   static bool pWithinRange[NUM_LOX] = {false};
   static uint32_t last_activate[NUM_LOX] = {0};
 
+  static int32_t acc_delta[NUM_LOX] = {0};
+  static uint16_t pReading[NUM_LOX] = {0};
+
   bool activated = false;
 
   uint16_t reading = readSensor(i);
+
+  int16_t delta = reading - pReading[i];
+  pReading[i] = reading;
+
+  acc_delta[i] = acc_delta[i] * 0.5 + delta;
+
+  if (abs(acc_delta[i]) > 30) {
+    return false;
+  }
 
   bool withinRange = reading > min && reading < max;
 
@@ -81,6 +93,7 @@ void logSensors() {
 uint16_t readSensor(uint8_t i) {
   static uint32_t last_read[NUM_LOX] = {0};
   static uint16_t last_val[NUM_LOX] = {0};
+
   constexpr float alpha = 0.1;
 
   uint16_t &val = last_val[i];
