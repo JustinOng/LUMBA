@@ -11,7 +11,7 @@ typedef struct {
   uint16_t speed;
 } wave_params_t;
 
-void drawWaves(CRGB *leds, wave_params_t params, CRGB caps_color, uint8_t palette_index, uint8_t delta, segment_t &segment) {
+void drawWaves(CRGB *leds, wave_params_t params, CRGB caps_color, uint8_t palette_index, uint8_t delta, segment_t &segment, bool draw_new) {
   CRGBPalette16 p = CRGBPalette16(
       CRGB(params.color),
       caps_color);
@@ -38,7 +38,9 @@ void drawWaves(CRGB *leds, wave_params_t params, CRGB caps_color, uint8_t palett
     bri = 255;
   }
 
-  leds[getPixelIndex(0, segment)] = ColorFromPalette(p, palette_index, bri, NOBLEND);
+  if (draw_new) {
+    leds[getPixelIndex(0, segment)] = ColorFromPalette(p, palette_index, bri, NOBLEND);
+  }
 }
 
 #endif

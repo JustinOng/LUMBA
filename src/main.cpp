@@ -359,7 +359,7 @@ void loop() {
       // more than one time
       while (data.delta != last_run_delta) {
         for (uint8_t i = 0; i < sizeof(segments) / sizeof(segment_t); i++) {
-          drawWaves(buf, config.waves[active_pattern], config.eff_caps_color, data.caps_palette_index, data.delta, segments[i]);
+          drawWaves(buf, config.waves[active_pattern], config.eff_caps_color, data.caps_palette_index, data.delta, segments[i], fade_state != FADE_OUT);
         }
 
         last_run_delta++;
@@ -388,7 +388,7 @@ void loop() {
           leds[getPixelIndex(0, segment)].fadeToBlackBy(config.meteors_fade);
 
           // if we're at the start of the period, introduce new meteor
-          if ((pOffset % config.meteors_period) < config.meteors_length) {
+          if ((pOffset % config.meteors_period) < config.meteors_length && fade_state != FADE_OUT) {
             leds[getPixelIndex(0, segment)] = CRGB(config.meteors_color);
           }
         }
@@ -413,14 +413,17 @@ void loop() {
               break;
             }
             leds[getPixelIndex(star_pos, segment)] = CRGB(config.sl_color);
-            if (star_time < config.sl_fade_time) {
-              // fade in star if within sl_fade_time
-              leds[getPixelIndex(star_pos, segment)].fadeToBlackBy(map(star_time, 0, config.sl_fade_time, 255, 0));
-            }
 
-            // ensure that previous LED has been fully lit
-            if (star_pos >= config.sl_led_step) {
-              leds[getPixelIndex(star_pos - config.sl_led_step, segment)] = CRGB(config.sl_color);
+            if (fade_state != FADE_OUT) {
+              if (star_time < config.sl_fade_time) {
+                // fade in star if within sl_fade_time
+                leds[getPixelIndex(star_pos, segment)].fadeToBlackBy(map(star_time, 0, config.sl_fade_time, 255, 0));
+              }
+
+              // ensure that previous LED has been fully lit
+              if (star_pos >= config.sl_led_step) {
+                leds[getPixelIndex(star_pos - config.sl_led_step, segment)] = CRGB(config.sl_color);
+              }
             }
 
             // handle edge case where last star may not be faded out
@@ -431,9 +434,11 @@ void loop() {
             }
           } else {
             if (withinSegment(star_pos, segment)) {
-              leds[getPixelIndex(star_pos, segment)] = CRGB(config.sl_color);
+              if (fade_state != FADE_OUT) {
+                leds[getPixelIndex(star_pos, segment)] = CRGB(config.sl_color);
+              }
               if (star_time < config.sl_fade_time) {
-                // fade in star if within sl_fade_time
+                // fade out star if within sl_fade_time
                 leds[getPixelIndex(star_pos, segment)].fadeToBlackBy(map(star_time, 0, config.sl_fade_time, 0, 255));
               } else {
                 leds[getPixelIndex(star_pos, segment)] = CRGB::Black;
@@ -484,8 +489,9 @@ void loop() {
     if (millis() - fade_out_start < config.fade_duration) {
       int32_t delta = millis() - fade_out_start;
       // fade out
+      uint8_t fade_amount = map(delta, 0, config.fade_duration, 0, 255);
       if (delta < config.fade_duration) {
-        fadeToBlackBy(leds, NUM_LEDS, map(delta, 0, config.fade_duration, 0, 255));
+        fadeToBlackBy(leds, NUM_LEDS, fade_amount);
       } else {
         fill_solid(leds, NUM_LEDS, CRGB::Black);
       }
@@ -495,7 +501,7 @@ void loop() {
     }
   }
 
-  if (active_pattern == PAT_FIREWORKS && (millis() - last_pattern_change) < config.fade_duration) {
+  if ((active_pattern == PAT_FIREWORKS) && (millis() - last_pattern_change) < config.fade_duration) {
     // fade in
     fadeToBlackBy(leds, NUM_LEDS, map(millis() - last_pattern_change, 0, config.fade_duration, 255, 0));
   }
