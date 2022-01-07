@@ -408,11 +408,10 @@ void loop() {
         uint32_t star_time = pattern_time % config.sl_step_time;
 
         for (uint8_t u = 0; u < config.sl_star_len; u++) {
-          if (!withinSegment(star_pos, segment)) {
-            break;
-          }
-
           if (fade_in) {
+            if (!withinSegment(star_pos, segment)) {
+              break;
+            }
             leds[getPixelIndex(star_pos, segment)] = CRGB(config.sl_color);
             if (star_time < config.sl_fade_time) {
               // fade in star if within sl_fade_time
@@ -431,17 +430,22 @@ void loop() {
               }
             }
           } else {
-            leds[getPixelIndex(star_pos, segment)] = CRGB(config.sl_color);
-            if (star_time < config.sl_fade_time) {
-              // fade in star if within sl_fade_time
-              leds[getPixelIndex(star_pos, segment)].fadeToBlackBy(map(star_time, 0, config.sl_fade_time, 0, 255));
-            } else {
-              leds[getPixelIndex(star_pos, segment)] = CRGB::Black;
+            if (withinSegment(star_pos, segment)) {
+              leds[getPixelIndex(star_pos, segment)] = CRGB(config.sl_color);
+              if (star_time < config.sl_fade_time) {
+                // fade in star if within sl_fade_time
+                leds[getPixelIndex(star_pos, segment)].fadeToBlackBy(map(star_time, 0, config.sl_fade_time, 0, 255));
+              } else {
+                leds[getPixelIndex(star_pos, segment)] = CRGB::Black;
+              }
             }
 
             // ensure that previous LED has been fully dimmed
             if (star_pos >= config.sl_led_step) {
-              leds[getPixelIndex(star_pos - config.sl_led_step, segment)] = CRGB::Black;
+              uint16_t star_pos_prior = star_pos - config.sl_led_step;
+              if (withinSegment(star_pos_prior, segment)) {
+                leds[getPixelIndex(star_pos_prior, segment)] = CRGB::Black;
+              }
             }
           }
           star_pos++;
