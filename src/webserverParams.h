@@ -460,6 +460,15 @@ String params =
     "'default':'850'"
     "},"
     "{"
+    "'name':'led_end',"
+    "'label':'LED: End',"
+    "'type':" +
+    String(INPUTNUMBER) +
+    ","
+    "'min':1,'max':65535,"
+    "'default':'920'"
+    "},"
+    "{"
     "'name':'lox_min_0',"
     "'label':'Sensor Slot 0: Min Distance (mm)',"
     "'type':" +

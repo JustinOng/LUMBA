@@ -129,6 +129,7 @@ void readParams() {
   segments[2].start = conf.getInt("led_arc_mid");
   segments[2].end = conf.getInt("led_arc_corner") + 1;
   segments[3].start = conf.getInt("led_arc_mid") + 1;
+  segments[3].end = min(conf.getInt("led_end"), NUM_LEDS);
 
   for (uint8_t i = 0; i < 4; i++) {
     segments_fw[i].start = segments[i].end;
@@ -511,6 +512,8 @@ void loop() {
 
       leds[segments[2].start] = CRGB::Blue;
       leds[segments[2].start + 1] = CRGB::Black;
+
+      leds[segments[3].end] = CRGB::Yellow;
     } else {
       leds[segments[0].start] = CRGB::Black;
       leds[segments[0].start + 1] = CRGB::Red;
@@ -520,6 +523,8 @@ void loop() {
 
       leds[segments[2].start] = CRGB::Black;
       leds[segments[2].start + 1] = CRGB::Blue;
+
+      leds[segments[3].end] = CRGB::Black;
     }
   }
 
