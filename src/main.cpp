@@ -501,7 +501,7 @@ void loop() {
     }
   }
 
-  if ((active_pattern == PAT_FIREWORKS) && (millis() - last_pattern_change) < config.fade_duration) {
+  if ((active_pattern == PAT_WAVE0 || active_pattern == PAT_FIREWORKS) && (millis() - last_pattern_change) < config.fade_duration) {
     // fade in
     fadeToBlackBy(leds, NUM_LEDS, map(millis() - last_pattern_change, 0, config.fade_duration, 255, 0));
   }
